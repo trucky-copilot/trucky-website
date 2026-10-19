@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { TrialPlan } from "@/components/TrialPlan";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import {
@@ -62,7 +63,7 @@ export default function HomePage() {
         <WhoItsFor lang={lang} />
         <Solution lang={lang} />
         <HowItWorks lang={lang} />
-        <Pricing lang={lang} onOpenDemo={() => setDemoOpen(true)} />
+        <TrialPlan lang={lang} />
         <FAQ lang={lang} />
         <FinalCTA lang={lang} onOpenDemo={() => setDemoOpen(true)} />
       </main>

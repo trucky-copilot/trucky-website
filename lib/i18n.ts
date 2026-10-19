@@ -209,7 +209,7 @@ export const I18N = {
           highlight: false,
         },
       ],
-      free_trial: "14 días gratis · Sin tarjeta · Cancelas cuando quieras",
+      free_trial: "30 días gratis · Tarjeta requerida al contratar · Cancelas cuando quieras",
     },
     faq: {
       tag: "Preguntas frecuentes",
@@ -480,7 +480,7 @@ export const I18N = {
           highlight: false,
         },
       ],
-      free_trial: "14-day free trial · No card · Cancel anytime",
+      free_trial: "30-day free trial · Card required at checkout · Cancel anytime",
     },
     faq: {
       tag: "FAQ",

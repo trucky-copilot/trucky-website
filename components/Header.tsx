@@ -1,5 +1,6 @@
 "use client";
 
+import { AccountButton } from "./AccountButton";
 import { useEffect, useState } from "react";
 import { Icon, Logo } from "./Icons";
 import { I18N, type Lang } from "@/lib/i18n";
@@ -50,6 +51,7 @@ export function Header({ lang, setLang, theme, setTheme, onOpenDemo }: Props) {
           </a>
         </div>
         <div className="nav-tools">
+          <AccountButton lang={lang} />
           <div className="lang-toggle desktop-only">
             <button
               className={lang === "es" ? "active" : ""}
