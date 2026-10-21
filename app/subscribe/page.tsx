@@ -20,6 +20,21 @@ export default function Subscribe() {
     finally { setBusy(false); }
   }
   useEffect(() => { void load(); }, []);
+  async function checkout() {
+    if (!selected || busy) return;
+    setBusy(true); setError("");
+    try {
+      const response = await fetch("/api/checkout", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ organization_id: selected }),
+      });
+      const body = await response.json();
+      if (!response.ok) throw Error(body.error);
+      const destination = new URL(body.url);
+      if (destination.protocol !== "https:" || destination.hostname !== "checkout.stripe.com") throw Error("CHECKOUT_UNAVAILABLE");
+      window.location.assign(destination.href);
+    } catch (e) { setError(e instanceof Error ? e.message : "CHECKOUT_UNAVAILABLE"); setBusy(false); }
+  }
   async function create(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setError("");
     try {
@@ -34,7 +49,7 @@ export default function Subscribe() {
     <a href="/">← Trucky</a><h1 className="h2">Tu empresa</h1>
     <p>Selecciona la empresa para la suscripción o crea una nueva.</p>
     {busy && <p role="status">Cargando…</p>}
-    {error && <p role="alert">{error === "SIGN_IN_REQUIRED" ? "Inicia sesión de nuevo para continuar." : "La integración de empresas está pendiente de publicación o no está disponible. No se ha iniciado ninguna compra."}</p>}
+    {error && <p role="alert">{error === "SIGN_IN_REQUIRED" ? "Inicia sesión de nuevo para continuar." : ({ CHECKOUT_NOT_READY: "Checkout aún no habilitado. No se ha iniciado ninguna compra.", TEST_ORGANIZATION_NOT_ALLOWED: "Esta empresa no está autorizada para pruebas.", RECONCILIATION_REQUIRED: "Hay un intento previo que requiere revisión. No vuelvas a contratar.", CHECKOUT_LOCKED: "Existe otro intento de compra en curso.", ALREADY_SUBSCRIBED: "Esta empresa ya tiene una suscripción." }[error] || "No se pudo completar la operación. No intentes crear otra suscripción; revisaremos el resultado.")}</p>}
     {error === "SIGN_IN_REQUIRED" && <button className="btn btn-primary" onClick={() => signIn("google", { callbackUrl: "/subscribe" })}>Continuar con Google</button>}
     {!error && <>
       <fieldset disabled={busy}><legend>Empresas que administras</legend>
@@ -43,7 +58,7 @@ export default function Subscribe() {
       </fieldset>
       <form onSubmit={create} style={{ marginTop: 24 }}><label htmlFor="company">Nombre de la nueva empresa</label><input id="company" value={name} maxLength={120} required disabled={busy} onChange={e => setName(e.target.value)} /><button className="btn btn-ghost" disabled={busy || !name.trim()}>Crear empresa</button></form>
     </>}
-    <button className="btn btn-primary" disabled style={{ marginTop: 24 }}>Checkout pendiente de validación</button>
+    <button className="btn btn-primary" disabled={busy || !selected} onClick={checkout} style={{ marginTop: 24 }}>{busy ? "Procesando…" : "Continuar a Stripe — prueba"}</button>
     <p>30 días gratis al completar la suscripción. Esta pantalla no inicia la prueba ni activa acceso.</p>
   </main>;
 }
