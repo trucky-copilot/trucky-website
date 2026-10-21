@@ -43,7 +43,6 @@ export async function POST(req: NextRequest) {
       client_reference_id: org.id,
       line_items: [{ price: priceId, quantity: 1 }],
       payment_method_collection: "always",
-      payment_method_types: ["card"],
       billing_address_collection: "required",
       tax_id_collection: { enabled: true },
       metadata: { org_id: org.id, reservation_id: attempt.id },
@@ -52,10 +51,13 @@ export async function POST(req: NextRequest) {
       success_url: `${origin}/subscribe?checkout=returned`,
       cancel_url: `${origin}/subscribe?checkout=canceled`,
     });
+    // Older canonical requests may retain this removed API parameter.
+    // Omit it on the wire without replacing the reservation/idempotency key.
+    const { payment_method_types: _removedPaymentTypes, ...supportedPayload } = payload;
     stage = "stripe_session";
     const session = attempt.sessionId
       ? await stripe.checkout.sessions.retrieve(attempt.sessionId)
-      : await stripe.checkout.sessions.create(payload, { idempotencyKey: attempt.idempotencyKey });
+      : await stripe.checkout.sessions.create(supportedPayload, { idempotencyKey: attempt.idempotencyKey });
     if (session.livemode || session.client_reference_id !== org.id || session.metadata?.reservation_id !== attempt.id) throw Error("STRIPE_SESSION_MISMATCH");
     stage = "redis_attach";
     await coordinator.attach(org.id, attempt.id, session.id);
