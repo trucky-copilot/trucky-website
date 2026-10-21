@@ -29,3 +29,10 @@ Retries by the same authorized Google subject reuse the original attempt. Other 
 Remaining work: server-side Google token retrieval with expiration handling, Base44 organization APIs and UI, immutable canonical checkout request persistence and Stripe creation/recovery, webhook and entitlement reconciliation, secure legacy-account linking. Never generate account-claim signatures based solely on email. All checkout creation paths must use this coordinator; old bypass paths must remain disabled.
 
 Local checks: `node --test tests/checkout-coordinator.test.mjs`. Tests use an atomic command model, not a live Redis instance; actual Redis/Lua, Base44, OAuth and Stripe end-to-end acceptance remains pending. Do not enable purchase buttons yet.
+
+## Organization connection (implemented, gated)
+The web now has `/subscribe` and server-only `/api/organizations`. Google ID tokens remain in encrypted HttpOnly session JWTs and are not included in the public session response. Expired credentials require Google sign-in again; no refresh token is requested or stored. POST uses exact-origin checks; all organization operations require a valid server session and server-to-server secret. Responses omit tokens and secrets.
+
+Deploy the backend identity fix PR before setting `BASE44_ORGANIZATIONS_ENABLED=true` for Preview. Keep this flag unset until testing the backend. Existing memberships without verified Google sub will not be auto-linked. Organization creation still requires durable concurrency/rate limiting and recovery if membership creation fails; this phase is not production-ready. Review Base44 OrganizationMember RLS before accepting memberships for billing: the existing client create rule is email-based, not a server-only billing role assignment policy.
+
+Checks: build, separate tsc, `node --test tests/*.test.mjs` (HTTP suite requires built output). OAuth exchange and actual Base44 requests are not tested locally. Checkout and webhook remain unimplemented/disabled; no URL for a webhook should be registered yet.

@@ -16,7 +16,7 @@ export function TrialPlan({ lang }: { lang: Lang }) {
       <p>{es ? "al mes, después de 30 días gratis" : "per month after 30 free days"}</p>
       <p>{es ? "Entorno de pruebas. No se realizan cobros reales." : "Test environment. No real charges."}</p>
       {failed && <p role="alert">{es ? "No se pudo cargar el precio. Intenta de nuevo más tarde." : "Price unavailable. Please try again later."}</p>}
-      <button className="btn btn-primary btn-block" onClick={() => signIn("google", { callbackUrl: "/#pricing" })}>{es ? "Iniciar sesión con Google" : "Sign in with Google"}</button>
+      <button className="btn btn-primary btn-block" onClick={() => signIn("google", { callbackUrl: "/subscribe" })}>{es ? "Iniciar sesión con Google" : "Sign in with Google"}</button>
       <p className="price-note">{es ? "Checkout pendiente de conectar con la activación de cuentas. Iniciar sesión todavía no activa la prueba." : "Checkout pending account provisioning integration. Signing in does not start a trial yet."}</p>
     </div>
   </div></section>;

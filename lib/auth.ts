@@ -10,6 +10,14 @@ export const authOptions: NextAuthOptions = {
     authorization: { params: { scope: "openid email profile" } },
   })],
   callbacks: {
+    async jwt({ token, account }) {
+      if (account?.provider === "google") {
+        // Encrypted HttpOnly JWT; never copied into the public session callback.
+        token.googleIdToken = account.id_token;
+        token.googleTokenExpires = account.expires_at;
+      }
+      return token;
+    },
     async signIn({ account, profile }) {
       return account?.provider === "google" && (profile as { email_verified?: boolean })?.email_verified === true;
     },
