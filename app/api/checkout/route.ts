@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { base44Call, googleIdentity, sameOrigin } from "@/lib/server/base44";
 import { createCheckoutCoordinator, redisCommandFromEnv } from "@/lib/server/checkout-coordinator.mjs";
-import { canonicalCheckoutPayload } from "@/lib/server/checkout-payload.mjs";
+import { canonicalCheckoutPayload, recoverRejectedPayload } from "@/lib/server/checkout-payload.mjs";
 export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   if (!sameOrigin(req)) return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
@@ -51,13 +51,19 @@ export async function POST(req: NextRequest) {
       success_url: `${origin}/subscribe?checkout=returned`,
       cancel_url: `${origin}/subscribe?checkout=canceled`,
     });
-    // Older canonical requests may retain this removed API parameter.
-    // Omit it on the wire without replacing the reservation/idempotency key.
-    const { payment_method_types: _removedPaymentTypes, ...supportedPayload } = payload;
+    let supportedPayload = payload;
+    let idempotencyKey = attempt.idempotencyKey;
+    if (Object.hasOwn(payload, "payment_method_types") && !attempt.sessionId) {
+      stage = "audited_recovery";
+      const recovery = await recoverRejectedPayload(command, attempt, payload,
+        process.env.STRIPE_AUDITED_REJECTED_ATTEMPT_ID);
+      supportedPayload = recovery.payload;
+      idempotencyKey = recovery.idempotencyKey;
+    }
     stage = "stripe_session";
     const session = attempt.sessionId
       ? await stripe.checkout.sessions.retrieve(attempt.sessionId)
-      : await stripe.checkout.sessions.create(supportedPayload, { idempotencyKey: attempt.idempotencyKey });
+      : await stripe.checkout.sessions.create(supportedPayload, { idempotencyKey });
     if (session.livemode || session.client_reference_id !== org.id || session.metadata?.reservation_id !== attempt.id) throw Error("STRIPE_SESSION_MISMATCH");
     stage = "redis_attach";
     await coordinator.attach(org.id, attempt.id, session.id);
