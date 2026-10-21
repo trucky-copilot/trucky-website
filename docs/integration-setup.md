@@ -20,3 +20,12 @@ In Google Clients, register exactly `${NEXTAUTH_URL}/api/auth/callback/google` a
 
 ## Before any checkout activation
 Agree whether Base44 entitlement is per User or Organization and obtain a supported server-side provisioning contract. Store stable Google subject/customer/subscription mapping with transactional uniqueness, reserve a trial once, use 30 trial days and require a card, collect billing address/name/tax data as applicable, verify raw-body webhook signatures and deduplicate event IDs durably. Handle trialing, paid renewals, failures, cancellation and out-of-order events. A success redirect alone must never grant access. No short placeholder endpoint should acknowledge successful provisioning.
+
+## Redis coordinator (implemented, not wired to checkout)
+`lib/server/checkout-coordinator.mjs` reads provider-managed `KV_REST_API_URL` and `KV_REST_API_TOKEN`. It reserves with atomic SET NX, and attaches/releases using owner-checked Lua scripts. No credential is exposed to the browser. Keys are test-namespaced. A pending attempt deliberately has no automatic expiration: otherwise an old open checkout or unknown create result could coexist with a new purchase. Release requires a server-retrieved expired test session. Complete/open/unknown outcomes remain blocked.
+
+Retries by the same authorized Google subject reuse the original attempt. Other actors are blocked. Unknown creates must be recovered using the original Stripe request and idempotency key; after Stripe's idempotency retention window, DO NOT blindly repeat create: manual/durable reconciliation is required. Keep the full canonical Stripe creation payload stable (including absolute expiration time) in the eventual integration. This coordinator is not an entitlement database and does not grant access.
+
+Remaining work: server-side Google token retrieval with expiration handling, Base44 organization APIs and UI, immutable canonical checkout request persistence and Stripe creation/recovery, webhook and entitlement reconciliation, secure legacy-account linking. Never generate account-claim signatures based solely on email. All checkout creation paths must use this coordinator; old bypass paths must remain disabled.
+
+Local checks: `node --test tests/checkout-coordinator.test.mjs`. Tests use an atomic command model, not a live Redis instance; actual Redis/Lua, Base44, OAuth and Stripe end-to-end acceptance remains pending. Do not enable purchase buttons yet.
