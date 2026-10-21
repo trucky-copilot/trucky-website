@@ -12,6 +12,9 @@ export async function POST(req: NextRequest) {
     const identity = await googleIdentity(req);
     const body = await req.json();
     if (typeof body.organization_id !== "string") return NextResponse.json({ error: "INVALID_ORGANIZATION" }, { status: 400 });
+    const allowedTestOrganizations = new Set((process.env.STRIPE_TEST_ORGANIZATION_IDS || "")
+      .split(",").map(value => value.trim()).filter(Boolean));
+    if (!allowedTestOrganizations.has(body.organization_id)) return NextResponse.json({ error: "TEST_ORGANIZATION_NOT_ALLOWED" }, { status: 403 });
     const result = await base44Call("resolveUserOrganizations", { google_id_token: identity.idToken });
     if (result.user?.google_sub !== identity.sub || !Array.isArray(result.organizations)) throw Error("BASE44_UNAVAILABLE");
     const org = result.organizations.find((o: any) => o.id === body.organization_id && ["owner", "admin"].includes(o.role));
