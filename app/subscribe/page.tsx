@@ -86,8 +86,8 @@ export default function Subscribe() {
   if (needsLogin) return <main className="demo-page"><section className="demo-card plan-login">
     <a href="/">← Trucky</a>
     <h1>Inicia sesión</h1>
-    <p>Continúa con Google para contratar el plan {planLabel}.</p>
-    <button className="btn btn-primary" onClick={() => signIn("google", { callbackUrl: window.location.pathname + window.location.search })}>
+    <p>Continúa con Google para contratar {planLabel}.</p>
+    <button className="btn google-login-btn" onClick={() => signIn("google", { callbackUrl: window.location.pathname + window.location.search })}>
       <span aria-hidden="true" style={{background:"white",color:"#4285f4",borderRadius:4,padding:"2px 7px",marginRight:12,fontWeight:800}}>G</span>
       Continuar con Google
     </button>

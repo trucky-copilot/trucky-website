@@ -1402,3 +1402,7 @@ main form label input { display:block; width:100%; padding:12px; margin-top:6px;
 .demo-card input:focus { outline:2px solid #9567ff; outline-offset:2px; }
 .demo-card button { width:100%; margin-top:12px; }
 @media(max-width:600px){.demo-card{padding:24px;}.demo-page{padding:32px 16px;}}
+
+.google-login-btn { display:flex; align-items:center; justify-content:center; width:100%; border:1px solid #665775; border-radius:8px; background:#211a2c; color:#fff; box-shadow:none; padding:14px 24px; font-weight:600; }
+.google-login-btn:hover { background:#30243e; border-color:#b19bc8; }
+.google-login-btn:focus-visible { outline:2px solid #b892ff; outline-offset:4px; }
