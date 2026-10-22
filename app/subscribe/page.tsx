@@ -49,7 +49,7 @@ export default function Subscribe() {
   }
   return <main className="container-tr" style={{ paddingTop: 60, paddingBottom: 60, maxWidth: 700 }}>
     <a href="/">← Trucky</a><h1 className="h2">Tu empresa</h1>
-    <p>Selecciona la empresa para la suscripción o crea una nueva.</p>
+    <p>Selecciona la empresa para la suscripción o crea una nueva.</p><p role="note">Modo de pruebas: utiliza únicamente tarjetas de prueba de Stripe. No se harán cargos reales.</p>
     {busy && <p role="status">Cargando…</p>}
     {error && <p role="alert">{error === "SIGN_IN_REQUIRED" ? "Inicia sesión de nuevo para continuar." : ({ CHECKOUT_NOT_READY: "Checkout aún no habilitado. No se ha iniciado ninguna compra.", TEST_ORGANIZATION_NOT_ALLOWED: "Esta empresa no está autorizada para pruebas.", RECONCILIATION_REQUIRED: "Hay un intento previo que requiere revisión. No vuelvas a contratar.", CHECKOUT_LOCKED: "Existe otro intento de compra en curso.", ALREADY_SUBSCRIBED: "Esta empresa ya tiene una suscripción." }[error] || "No se pudo completar la operación. No intentes crear otra suscripción; revisaremos el resultado.")}</p>}
     {error === "SIGN_IN_REQUIRED" && <button className="btn btn-primary" onClick={() => signIn("google", { callbackUrl: "/subscribe" })}>Continuar con Google</button>}
@@ -63,7 +63,7 @@ export default function Subscribe() {
     {subscribed ? <section style={{ marginTop: 24 }} aria-live="polite">
       <h2>{selectedOrg?.subscription_status === "trialing" ? "Tu empresa está en período de prueba" : selectedOrg?.subscription_status === "active" ? "Suscripción activa" : "La suscripción requiere atención de pago"}</h2>
       <p>La suscripción ya está registrada. No necesitas contratar otra vez.</p>
-      <a className="btn btn-primary" href="https://trucky-17a283d5.base44.app/">Abrir aplicación Trucky</a>
+      <a className="btn btn-primary" href="https://trucky-17a283d5.base44.app/">Ir a Trucky</a>
       <p>La aplicación puede pedirte iniciar sesión de nuevo. Este enlace no transfiere tu sesión de Google ni garantiza permisos dentro de la app.</p>
     </section> : <>
       <button className="btn btn-primary" disabled={busy || !selected} onClick={checkout} style={{ marginTop: 24 }}>{busy ? "Procesando…" : "Continuar a Stripe — prueba"}</button>

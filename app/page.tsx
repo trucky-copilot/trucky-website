@@ -58,6 +58,10 @@ export default function HomePage() {
         onOpenDemo={() => setDemoOpen(true)}
       />
       <main>
+        <div role="note" style={{ padding: "12px 24px", textAlign: "center", background: "#fff3cd", color: "#332500", position: "relative", zIndex: 10 }}>
+          Demo con Stripe en modo de pruebas. No uses tarjetas reales. No se realizarán cobros reales.
+          {" "}<a href="/subscribe" style={{ textDecoration: "underline" }}>Mi suscripción / Ir a Trucky</a>
+        </div>
         <Hero lang={lang} onOpenDemo={() => setDemoOpen(true)} />
         <Problem lang={lang} />
         <WhoItsFor lang={lang} />
