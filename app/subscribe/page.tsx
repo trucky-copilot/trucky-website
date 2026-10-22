@@ -86,12 +86,12 @@ export default function Subscribe() {
   if (needsLogin) return <main className="demo-page"><section className="demo-card plan-login">
     <a href="/">← Trucky</a>
     <h1>Inicia sesión</h1>
-    <p>Continúa con Google para contratar {planLabel}.</p>
+
     <button className="btn google-login-btn" onClick={() => signIn("google", { callbackUrl: window.location.pathname + window.location.search })}>
       <span aria-hidden="true" style={{background:"white",color:"#4285f4",borderRadius:4,padding:"2px 7px",marginRight:12,fontWeight:800}}>G</span>
       Continuar con Google
     </button>
-    <p>Después continuarás a Stripe para introducir tu tarjeta. Primeros 30 días gratis. El precio mensual se confirma en Stripe.</p>
+    <p>Continúa con Google. Después de completar los datos de tarjeta en Stripe y confirmar la suscripción, te dirigiremos a la aplicación.</p>
     <p>Modo de pruebas: no uses una tarjeta real.</p>
   </section></main>;
   return <main className="demo-page"><section className="demo-card">

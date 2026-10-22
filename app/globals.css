@@ -1406,3 +1406,10 @@ main form label input { display:block; width:100%; padding:12px; margin-top:6px;
 .google-login-btn { display:flex; align-items:center; justify-content:center; width:100%; border:1px solid #665775; border-radius:8px; background:#211a2c; color:#fff; box-shadow:none; padding:14px 24px; font-weight:600; }
 .google-login-btn:hover { background:#30243e; border-color:#b19bc8; }
 .google-login-btn:focus-visible { outline:2px solid #b892ff; outline-offset:4px; }
+
+.account-menu { position:relative; display:inline-flex; }
+.account-dropdown { position:absolute; right:0; top:calc(100% + 12px); min-width:180px; padding:8px; background:#21162f; border:1px solid #594171; border-radius:14px; box-shadow:0 16px 40px #0006; z-index:300; }
+.account-dropdown button { display:block; width:100%; text-align:left; padding:12px 14px; background:transparent; color:#f3edff; border:0; border-radius:8px; cursor:pointer; }
+.account-dropdown button:hover,.account-dropdown button:focus-visible { background:#3b2851; }
+.google-login-btn { background:#fff; color:#30253c; border:1px solid #dadce0; border-radius:12px; min-height:54px; font-size:16px; }
+.google-login-btn:hover { background:#f2edf9; border-color:#a28abf; }
