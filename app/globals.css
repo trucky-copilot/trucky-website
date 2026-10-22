@@ -243,8 +243,8 @@ section {
   z-index: 100;
   display: flex;
   align-items: center;
-  backdrop-filter: blur(16px);
-  background: transparent;
+  backdrop-filter: none;
+  background: #100b20;
   border-bottom: 1px solid transparent;
   transition: border-color 0.3s ease, background-color 0.3s ease,
     color 0.3s ease;
@@ -1384,3 +1384,8 @@ section {
   background: var(--brand);
   color: white;
 }
+
+/* Stable dark navigation: do not blend the light test notice into the video. */
+.nav.scrolled { background: #100b20; color: #fff; border-bottom-color: #302344; }
+.nav.scrolled .nav-links a.link, .nav.scrolled .icon-btn, .nav.scrolled .lang-toggle button { color: #e2ddf5; }
+.nav.scrolled .lang-toggle { background: #241938; border-color: #493568; }

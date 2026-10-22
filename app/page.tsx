@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { TrialPlan } from "@/components/TrialPlan";
+
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import {
@@ -55,21 +55,21 @@ export default function HomePage() {
         setLang={setLang}
         theme={theme}
         setTheme={setTheme}
-        onOpenDemo={() => setDemoOpen(true)}
+        onOpenDemo={() => window.location.assign("/subscribe")}
       />
       <main>
-        <div role="note" style={{ padding: "12px 24px", textAlign: "center", background: "#fff3cd", color: "#332500", position: "relative", zIndex: 10 }}>
+        <div role="note" style={{ padding: "12px 24px", textAlign: "center", background: "#151027", color: "#e2ddf5", position: "relative", zIndex: 10, marginTop: "var(--nav-h)" }}>
           Demo con Stripe en modo de pruebas. No uses tarjetas reales. No se realizarán cobros reales.
           {" "}<a href="/subscribe" style={{ textDecoration: "underline" }}>Mi suscripción / Ir a Trucky</a>
         </div>
-        <Hero lang={lang} onOpenDemo={() => setDemoOpen(true)} />
+        <Hero lang={lang} onOpenDemo={() => window.location.assign("/subscribe")} />
         <Problem lang={lang} />
         <WhoItsFor lang={lang} />
         <Solution lang={lang} />
         <HowItWorks lang={lang} />
-        <TrialPlan lang={lang} />
+
         <FAQ lang={lang} />
-        <FinalCTA lang={lang} onOpenDemo={() => setDemoOpen(true)} />
+        <FinalCTA lang={lang} onOpenDemo={() => window.location.assign("/subscribe")} />
       </main>
       <Footer lang={lang} />
       <FloatingActions lang={lang} />

@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       metadata: { org_id: org.id, reservation_id: attempt.id },
       subscription_data: { trial_period_days: 30, metadata: { org_id: org.id, reservation_id: attempt.id } },
       expires_at: Math.floor(attempt.createdAt / 1000) + 1800,
-      success_url: `${origin}/?checkout=returned`,
+      success_url: `${origin}/subscribe?checkout=returned`,
       cancel_url: `${origin}/subscribe?checkout=canceled`,
     });
     let supportedPayload = payload;

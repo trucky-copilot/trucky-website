@@ -51,7 +51,7 @@ export function Hero({ lang, onOpenDemo }: Props) {
           <p className="hero-sub">{t.subtitle}</p>
           <div className="hero-cta">
             <button className="btn btn-primary btn-lg" onClick={onOpenDemo}>
-              {t.cta_primary}
+              {lang === "es" ? "Probar demo" : "Try demo"}
               <Icon name="arrowRight" width={18} height={18} />
             </button>
             <a className="btn btn-ghost-light btn-lg" href="#how">

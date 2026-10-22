@@ -1,6 +1,6 @@
 "use client";
 
-import { AccountButton } from "./AccountButton";
+
 import { useEffect, useState } from "react";
 import { Icon, Logo } from "./Icons";
 import { I18N, type Lang } from "@/lib/i18n";
@@ -43,7 +43,7 @@ export function Header({ lang, setLang, theme, setTheme, onOpenDemo }: Props) {
           <a href="#how" className="link">
             {t.nav.how}
           </a>
-          <a href="#pricing" className="link">
+          <a href="/subscribe" className="link">
             {t.nav.pricing}
           </a>
           <a href="#faq" className="link">
@@ -51,7 +51,7 @@ export function Header({ lang, setLang, theme, setTheme, onOpenDemo }: Props) {
           </a>
         </div>
         <div className="nav-tools">
-          <AccountButton lang={lang} />
+
           <div className="lang-toggle desktop-only">
             <button
               className={lang === "es" ? "active" : ""}
@@ -73,8 +73,8 @@ export function Header({ lang, setLang, theme, setTheme, onOpenDemo }: Props) {
           >
             <Icon name={isDark ? "sun" : "moon"} width={20} height={20} />
           </button>
-          <button className="btn btn-primary desktop-only" onClick={onOpenDemo}>
-            {t.nav.cta}
+          <button className="btn btn-primary" onClick={onOpenDemo}>
+            {lang === "es" ? "Probar demo" : "Try demo"}
           </button>
         </div>
       </div>
