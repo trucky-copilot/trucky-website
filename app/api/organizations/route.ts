@@ -1,3 +1,4 @@
+import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 import { base44Call, googleIdentity, sameOrigin } from "@/lib/server/base44";
 export const dynamic = "force-dynamic";
@@ -24,6 +25,11 @@ export async function POST(req: NextRequest) {
   try {
     const identity = await googleIdentity(req);
     const body = await req.json();
+    const session = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    if (body.prepare_checkout === true) {
+      // Provisional server-derived workspace; never used to claim existing companies.
+      body.company_name = `Cuenta ${session?.name || "Trucky"}`.slice(0, 120);
+    }
     if (typeof body.company_name !== "string" || !body.company_name.trim() || body.company_name.length > 120) return NextResponse.json({ error: "INVALID_COMPANY_NAME" }, { status: 400 });
     const result = await base44Call("createOrganizationForUser", { google_id_token: identity.idToken, company_name: body.company_name.trim() });
     if (typeof result.org_id !== "string" || result.role !== "owner") throw Error("BASE44_UNAVAILABLE");

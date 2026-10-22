@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
       payment_method_collection: "always",
       billing_address_collection: "required",
       tax_id_collection: { enabled: true },
+      custom_fields: [{ key: "company_name", label: { type: "custom", custom: "Nombre de la empresa" }, type: "text", optional: false, text: { maximum_length: 120 } }],
       metadata: { org_id: org.id, reservation_id: attempt.id },
       subscription_data: { trial_period_days: 30, metadata: { org_id: org.id, reservation_id: attempt.id } },
       expires_at: Math.floor(attempt.createdAt / 1000) + 1800,

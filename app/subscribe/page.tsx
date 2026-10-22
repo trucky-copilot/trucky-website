@@ -47,6 +47,14 @@ export default function Subscribe() {
         }
         throw Error("SUBSCRIPTION_CONFIRMATION_PENDING");
       }
+      if (orgs.length === 0 && returned !== "canceled") {
+        setMessage("Preparando tu cuenta para continuar a Stripe…");
+        const created = await fetch("/api/organizations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prepare_checkout: true }) });
+        const workspace = await created.json();
+        if (!created.ok || !workspace.organization?.id) throw Error(workspace.error || "BASE44_UNAVAILABLE");
+        await openCheckout(workspace.organization.id);
+        return;
+      }
       if (orgs.length === 1) {
         setSelected(orgs[0].id);
         if (hasAccess(orgs[0])) { window.location.assign(APP_URL); return; }
@@ -95,11 +103,7 @@ export default function Subscribe() {
       <p>{({ DEMO_ORGANIZATION_REQUIRED: "Esta empresa anterior no está habilitada para la demo pública. No se ha iniciado una compra.", SIGN_IN_REQUIRED: "La sesión expiró. Inicia sesión otra vez.", RECONCILIATION_REQUIRED: "Hay un intento pendiente que requiere revisión. No crees otra suscripción.", ALREADY_SUBSCRIBED: "Tu empresa ya tiene una suscripción.", SUBSCRIPTION_CONFIRMATION_PENDING: "La confirmación está pendiente. No repitas la compra. Puedes consultar el estado de nuevo actualizando esta página." }[error] || "No se pudo continuar. Código: " + error)}</p>
       {error === "SIGN_IN_REQUIRED" && <button onClick={() => signIn("google", { callbackUrl: window.location.pathname + window.location.search })}>Iniciar sesión con Google</button>}
     </div>}
-    {!busy && !error && !needsLogin && organizations.length === 0 && <form onSubmit={create}>
-      <label htmlFor="company">Nombre de tu empresa</label>
-      <input id="company" required maxLength={120} value={name} onChange={e => setName(e.target.value)} style={{ width: "100%", padding: 12, margin: "12px 0", color: "#111", borderRadius: 8 }} />
-      <button className="btn btn-primary" disabled={!name.trim()}>Continuar a Stripe</button>
-    </form>}
+    {!busy && !error && organizations.length === 0 && <p>Compra cancelada. Vuelve a los planes para continuar.</p>}
     {!busy && !error && !needsLogin && organizations.length > 0 && <fieldset><legend>Tu empresa</legend>
       {organizations.map(org => <label key={org.id} style={{ display: "block", padding: 12 }}><input type="radio" name="org" checked={selected === org.id} onChange={() => setSelected(org.id)} /> {org.name}</label>)}
       <button className="btn btn-primary" disabled={!selected} onClick={() => {
