@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   const reply = (code: string, status: number) => NextResponse.json({ code }, { status });
   const key = process.env.STRIPE_SECRET_KEY;
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
-  if (process.env.VERCEL_ENV !== "preview" || !key?.startsWith("sk_test_") || !secret) return reply("TEST_CONFIGURATION_REQUIRED", 503);
+  if ((process.env.VERCEL_ENV !== "preview" && process.env.PUBLIC_TEST_DEMO_ENABLED !== "true") || !key?.startsWith("sk_test_") || !secret) return reply("TEST_CONFIGURATION_REQUIRED", 503);
   const stripe = new Stripe(key);
   let event: Stripe.Event;
   try {

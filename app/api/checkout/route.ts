@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   if (!sameOrigin(req)) return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
   // Do not enable until provisioning webhook is deployed and acceptance tested.
-  if (process.env.STRIPE_CHECKOUT_TEST_ENABLED !== "true" || process.env.VERCEL_ENV !== "preview") return NextResponse.json({ error: "CHECKOUT_NOT_READY" }, { status: 503 });
+  if (process.env.STRIPE_CHECKOUT_TEST_ENABLED !== "true" || (process.env.VERCEL_ENV !== "preview" && process.env.PUBLIC_TEST_DEMO_ENABLED !== "true")) return NextResponse.json({ error: "CHECKOUT_NOT_READY" }, { status: 503 });
   let stage = "identity";
   try {
     const identity = await googleIdentity(req);
@@ -15,11 +15,13 @@ export async function POST(req: NextRequest) {
     if (typeof body.organization_id !== "string") return NextResponse.json({ error: "INVALID_ORGANIZATION" }, { status: 400 });
     const allowedTestOrganizations = new Set((process.env.STRIPE_TEST_ORGANIZATION_IDS || "")
       .split(",").map(value => value.trim()).filter(Boolean));
-    if (!allowedTestOrganizations.has(body.organization_id)) return NextResponse.json({ error: "TEST_ORGANIZATION_NOT_ALLOWED" }, { status: 403 });
+    const publicDemo = process.env.PUBLIC_TEST_DEMO_ENABLED === "true";
+    if (!publicDemo && !allowedTestOrganizations.has(body.organization_id)) return NextResponse.json({ error: "TEST_ORGANIZATION_NOT_ALLOWED" }, { status: 403 });
     stage = "base44";
     const result = await base44Call("resolveUserOrganizations", { google_id_token: identity.idToken });
     if (result.user?.google_sub !== identity.sub || !Array.isArray(result.organizations)) throw Error("BASE44_UNAVAILABLE");
     const org = result.organizations.find((o: any) => o.id === body.organization_id && ["owner", "admin"].includes(o.role));
+    if (publicDemo && org?.billing_demo_enabled !== true) return NextResponse.json({ error: "DEMO_ORGANIZATION_REQUIRED" }, { status: 403 });
     if (!org) return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
     // Strictly permit first subscriptions only. Recovery/resubscription needs a separate flow.
     if (org.subscription_status !== "none" || org.can_checkout !== true) return NextResponse.json({ error: "ALREADY_SUBSCRIBED" }, { status: 409 });
@@ -48,7 +50,7 @@ export async function POST(req: NextRequest) {
       metadata: { org_id: org.id, reservation_id: attempt.id },
       subscription_data: { trial_period_days: 30, metadata: { org_id: org.id, reservation_id: attempt.id } },
       expires_at: Math.floor(attempt.createdAt / 1000) + 1800,
-      success_url: `${origin}/subscribe?checkout=returned`,
+      success_url: `${origin}/?checkout=returned`,
       cancel_url: `${origin}/subscribe?checkout=canceled`,
     });
     let supportedPayload = payload;
