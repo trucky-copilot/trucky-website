@@ -9,10 +9,11 @@ export default function Subscribe() {
   const [organizations, setOrganizations] = useState<Org[]>([]);
   const [selected, setSelected] = useState("");
   const [name, setName] = useState("");
-  const [message, setMessage] = useState("Preparando tu demo…");
+  const [message, setMessage] = useState("Preparando el pago seguro…");
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState("");
-  const [price, setPrice] = useState("");
+  const [needsLogin, setNeedsLogin] = useState(false);
+  const [planLabel, setPlanLabel] = useState("");
 
   async function openCheckout(id: string) {
     setBusy(true); setError(""); setMessage("Abriendo Stripe para registrar tu tarjeta de prueba…");
@@ -28,7 +29,7 @@ export default function Subscribe() {
   async function initialize() {
     try {
       const response = await fetch("/api/organizations", { cache: "no-store" });
-      if (response.status === 401) { await signIn("google", { callbackUrl: window.location.pathname + window.location.search }); return; }
+      if (response.status === 401) { setNeedsLogin(true); setBusy(false); setMessage(""); return; }
       const body = await response.json();
       if (!response.ok) throw Error(body.error || "BASE44_UNAVAILABLE");
       const orgs: Org[] = body.organizations;
@@ -51,15 +52,17 @@ export default function Subscribe() {
         if (hasAccess(orgs[0])) { window.location.assign(APP_URL); return; }
         if (orgs[0].subscription_status === "none" && returned !== "canceled") { await openCheckout(orgs[0].id); return; }
       }
-      setBusy(false); setMessage(orgs.length ? "Selecciona tu empresa para continuar." : "Escribe el nombre de tu empresa para iniciar la demo.");
+      setBusy(false); setMessage(orgs.length ? "Selecciona tu empresa para continuar." : "Indica tu empresa para asociar correctamente la suscripción.");
     } catch (e) { setError(e instanceof Error ? e.message : "BASE44_UNAVAILABLE"); setBusy(false); }
   }
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    fetch("/api/plan").then(r => r.ok ? r.json() : null).then(plan => {
-      if (plan) setPrice(new Intl.NumberFormat("es", { style: "currency", currency: plan.currency }).format(plan.amount));
-    }).catch(() => {});
+    const plan = new URLSearchParams(window.location.search).get("plan");
+    if (plan !== "owner_op" && plan !== "fleet" && !new URLSearchParams(window.location.search).has("checkout")) {
+      setError("Selecciona Owner-Op o Flota desde los planes."); setBusy(false); return;
+    }
+    setPlanLabel(plan === "owner_op" ? "Owner-Op" : plan === "fleet" ? "Flota" : "Tu suscripción");
     void initialize();
   }, []);
   async function create(e: React.FormEvent) {
@@ -72,21 +75,32 @@ export default function Subscribe() {
       await openCheckout(body.organization.id);
     } catch (e) { setError(e instanceof Error ? e.message : "BASE44_UNAVAILABLE"); setBusy(false); }
   }
-  return <main className="container-tr" style={{ padding: "64px 24px", maxWidth: 640 }}>
-    <a href="/">← Trucky</a><h1 className="h2">Probar demo</h1>
-    <p>Primeros 30 días gratis.{price && ` Después, ${price} al mes en esta simulación.`}</p>
+  if (needsLogin) return <main className="demo-page"><section className="demo-card plan-login">
+    <a href="/">← Trucky</a>
+    <h1>Inicia sesión</h1>
+    <p>Continúa con Google para contratar el plan {planLabel}.</p>
+    <button className="btn btn-primary" onClick={() => signIn("google", { callbackUrl: window.location.pathname + window.location.search })}>
+      <span aria-hidden="true" style={{background:"white",color:"#4285f4",borderRadius:4,padding:"2px 7px",marginRight:12,fontWeight:800}}>G</span>
+      Continuar con Google
+    </button>
+    <p>Después continuarás a Stripe para introducir tu tarjeta. Primeros 30 días gratis. El precio mensual se confirma en Stripe.</p>
+    <p>Modo de pruebas: no uses una tarjeta real.</p>
+  </section></main>;
+  return <main className="demo-page"><section className="demo-card">
+    <a href="/">← Trucky</a><h1 className="h2">{planLabel}</h1>
+    <p>Primeros 30 días gratis. El importe del plan seleccionado se mostrará en Stripe antes de confirmar.</p>
     <p role="note">Modo de pruebas: no hay cobros reales. Usa solo tarjetas de prueba de Stripe.</p>
     <p role="status">{message}</p>
     {error && <div role="alert" style={{ padding: 16, border: "1px solid #a78bfa", margin: "20px 0" }}>
       <p>{({ DEMO_ORGANIZATION_REQUIRED: "Esta empresa anterior no está habilitada para la demo pública. No se ha iniciado una compra.", SIGN_IN_REQUIRED: "La sesión expiró. Inicia sesión otra vez.", RECONCILIATION_REQUIRED: "Hay un intento pendiente que requiere revisión. No crees otra suscripción.", ALREADY_SUBSCRIBED: "Tu empresa ya tiene una suscripción.", SUBSCRIPTION_CONFIRMATION_PENDING: "La confirmación está pendiente. No repitas la compra. Puedes consultar el estado de nuevo actualizando esta página." }[error] || "No se pudo continuar. Código: " + error)}</p>
       {error === "SIGN_IN_REQUIRED" && <button onClick={() => signIn("google", { callbackUrl: window.location.pathname + window.location.search })}>Iniciar sesión con Google</button>}
     </div>}
-    {!busy && !error && organizations.length === 0 && <form onSubmit={create}>
+    {!busy && !error && !needsLogin && organizations.length === 0 && <form onSubmit={create}>
       <label htmlFor="company">Nombre de tu empresa</label>
       <input id="company" required maxLength={120} value={name} onChange={e => setName(e.target.value)} style={{ width: "100%", padding: 12, margin: "12px 0", color: "#111", borderRadius: 8 }} />
       <button className="btn btn-primary" disabled={!name.trim()}>Continuar a Stripe</button>
     </form>}
-    {!busy && !error && organizations.length > 0 && <fieldset><legend>Tu empresa</legend>
+    {!busy && !error && !needsLogin && organizations.length > 0 && <fieldset><legend>Tu empresa</legend>
       {organizations.map(org => <label key={org.id} style={{ display: "block", padding: 12 }}><input type="radio" name="org" checked={selected === org.id} onChange={() => setSelected(org.id)} /> {org.name}</label>)}
       <button className="btn btn-primary" disabled={!selected} onClick={() => {
         const org = organizations.find(o => o.id === selected);
@@ -94,5 +108,5 @@ export default function Subscribe() {
       }}>Continuar</button>
     </fieldset>}
     <p style={{ marginTop: 24 }}>La aplicación puede solicitar su propio inicio de sesión; no se transfiere una sesión entre dominios.</p>
-  </main>;
+  </section></main>;
 }
