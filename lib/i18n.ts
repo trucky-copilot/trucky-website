@@ -209,7 +209,7 @@ export const I18N = {
           highlight: false,
         },
       ],
-      free_trial: "30 días gratis · Tarjeta requerida al contratar · Cancelas cuando quieras",
+      free_trial: "Facturación mensual desde la contratación · Sin mes gratuito en estos planes",
     },
     faq: {
       tag: "Preguntas frecuentes",
@@ -480,7 +480,7 @@ export const I18N = {
           highlight: false,
         },
       ],
-      free_trial: "30-day free trial · Card required at checkout · Cancel anytime",
+      free_trial: "Monthly billing starts at checkout · No free month on these plans",
     },
     faq: {
       tag: "FAQ",

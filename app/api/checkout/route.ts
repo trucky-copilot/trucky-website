@@ -65,11 +65,14 @@ export async function POST(req: NextRequest) {
       tax_id_collection: { enabled: true },
       custom_fields: [{ key: "company_name", label: { type: "custom", custom: "Nombre de la empresa" }, type: "text", optional: false, text: { maximum_length: 120 } }],
       metadata: { org_id: org.id, reservation_id: attempt.id },
-      subscription_data: { trial_period_days: 30, metadata: { org_id: org.id, reservation_id: attempt.id } },
+      subscription_data: { metadata: { org_id: org.id, reservation_id: attempt.id } },
       expires_at: Math.floor(attempt.createdAt / 1000) + 1800,
       success_url: `${origin}/subscribe?checkout=returned`,
       cancel_url: `${origin}/subscribe?checkout=canceled`,
     });
+    // Cached attempts retain immutable Stripe parameters. Never silently reuse a
+    // free-trial request after switching paid plans to immediate billing.
+    if (payload.subscription_data?.trial_period_days || payload.subscription_data?.trial_end) throw Error("LEGACY_TRIAL_CHECKOUT_REQUIRES_REVIEW");
     if (payload.line_items?.[0]?.price !== priceId) throw Error("EXISTING_CHECKOUT_DIFFERENT_PLAN");
     let supportedPayload = payload;
     let idempotencyKey = attempt.idempotencyKey;
@@ -97,7 +100,7 @@ export async function POST(req: NextRequest) {
     const safe = (value: unknown) => typeof value === "string" && /^[a-zA-Z0-9_-]{1,100}$/.test(value) ? value : undefined;
     console.error("checkout_failure", { stage, category: safe(code), type: safe(sdk.type), code: safe(sdk.code), status: typeof sdk.statusCode === "number" ? sdk.statusCode : undefined, stripeRequestId: safe(sdk.requestId) });
     if (["ALREADY_SUBSCRIBED", "EXISTING_CHECKOUT_DIFFERENT_PLAN"].includes(code)) outcomeCertain = true;
-    const allowed = ["ALREADY_SUBSCRIBED", "EXISTING_CHECKOUT_DIFFERENT_PLAN", "SIGN_IN_REQUIRED", "CHECKOUT_LOCKED", "RECONCILIATION_REQUIRED"];
+    const allowed = ["LEGACY_TRIAL_CHECKOUT_REQUIRES_REVIEW", "ALREADY_SUBSCRIBED", "EXISTING_CHECKOUT_DIFFERENT_PLAN", "SIGN_IN_REQUIRED", "CHECKOUT_LOCKED", "RECONCILIATION_REQUIRED"];
     return NextResponse.json({ error: allowed.includes(code) ? code : "CHECKOUT_UNAVAILABLE" }, { status: code === "SIGN_IN_REQUIRED" ? 401 : allowed.includes(code) ? 409 : 503 });
   } finally {
     if (mutationKey && redis && outcomeCertain) {
