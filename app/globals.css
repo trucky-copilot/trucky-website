@@ -1389,3 +1389,6 @@ section {
 .nav.scrolled { background: #100b20; color: #fff; border-bottom-color: #302344; }
 .nav.scrolled .nav-links a.link, .nav.scrolled .icon-btn, .nav.scrolled .lang-toggle button { color: #e2ddf5; }
 .nav.scrolled .lang-toggle { background: #241938; border-color: #493568; }
+
+main form label { display:block; margin:16px 0; }
+main form label input { display:block; width:100%; padding:12px; margin-top:6px; border-radius:8px; color:#111; background:#fff; }

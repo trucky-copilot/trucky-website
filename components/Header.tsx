@@ -1,6 +1,8 @@
 "use client";
 
 
+import { AccountButton } from "./AccountButton";
+import { getSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { Icon, Logo } from "./Icons";
 import { I18N, type Lang } from "@/lib/i18n";
@@ -14,6 +16,8 @@ type Props = {
 };
 
 export function Header({ lang, setLang, theme, setTheme, onOpenDemo }: Props) {
+  const [signedIn, setSignedIn] = useState(false);
+  useEffect(() => { getSession().then(s => setSignedIn(!!s)).catch(() => {}); }, []);
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const t = I18N[lang];
@@ -51,6 +55,7 @@ export function Header({ lang, setLang, theme, setTheme, onOpenDemo }: Props) {
           </a>
         </div>
         <div className="nav-tools">
+          <AccountButton lang={lang} />
 
           <div className="lang-toggle desktop-only">
             <button
@@ -73,9 +78,9 @@ export function Header({ lang, setLang, theme, setTheme, onOpenDemo }: Props) {
           >
             <Icon name={isDark ? "sun" : "moon"} width={20} height={20} />
           </button>
-          <button className="btn btn-primary" onClick={onOpenDemo}>
+          {signedIn && <button className="btn btn-primary" onClick={onOpenDemo}>
             {lang === "es" ? "Probar demo" : "Try demo"}
-          </button>
+          </button>}
         </div>
       </div>
     </nav>

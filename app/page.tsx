@@ -55,21 +55,21 @@ export default function HomePage() {
         setLang={setLang}
         theme={theme}
         setTheme={setTheme}
-        onOpenDemo={() => window.location.assign("/subscribe")}
+        onOpenDemo={() => window.location.assign("/demo")}
       />
       <main>
         <div role="note" style={{ padding: "12px 24px", textAlign: "center", background: "#151027", color: "#e2ddf5", position: "relative", zIndex: 10, marginTop: "var(--nav-h)" }}>
           Demo con Stripe en modo de pruebas. No uses tarjetas reales. No se realizarán cobros reales.
           {" "}<a href="/subscribe" style={{ textDecoration: "underline" }}>Mi suscripción / Ir a Trucky</a>
         </div>
-        <Hero lang={lang} onOpenDemo={() => window.location.assign("/subscribe")} />
+        <Hero lang={lang} onOpenDemo={() => window.location.assign("/demo")} />
         <Problem lang={lang} />
         <WhoItsFor lang={lang} />
         <Solution lang={lang} />
         <HowItWorks lang={lang} />
 
         <FAQ lang={lang} />
-        <FinalCTA lang={lang} onOpenDemo={() => window.location.assign("/subscribe")} />
+        <FinalCTA lang={lang} onOpenDemo={() => window.location.assign("/demo")} />
       </main>
       <Footer lang={lang} />
       <FloatingActions lang={lang} />

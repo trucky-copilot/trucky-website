@@ -6,7 +6,9 @@ test('homepage demo buttons use subscription flow, not booking modal', () => {
  assert.ok(!home.includes('<TrialPlan'));
  assert.ok(!home.includes('onOpenDemo={() => setDemoOpen(true)}'));
  const header=readFileSync('components/Header.tsx','utf8');
- assert.ok(!header.includes('<AccountButton'));
+ assert.ok(header.includes('<AccountButton'));
+ assert.ok(home.includes('window.location.assign("/demo")'));
+ assert.ok(header.includes('{signedIn &&'));
  assert.ok(header.includes('Probar demo'));
 });
 test('checkout return waits for server subscription confirmation', () => {
