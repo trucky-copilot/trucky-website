@@ -17,7 +17,12 @@ type Props = {
 
 export function Header({ lang, setLang, theme, setTheme, onOpenDemo }: Props) {
   const [signedIn, setSignedIn] = useState(false);
-  useEffect(() => { getSession().then(s => setSignedIn(!!s)).catch(() => {}); }, []);
+  useEffect(() => {
+    const refresh = () => { getSession().then(s => setSignedIn(!!s?.user)).catch(() => setSignedIn(false)); };
+    refresh(); window.addEventListener("focus", refresh);
+    const timer = setInterval(refresh, 15000);
+    return () => { window.removeEventListener("focus", refresh); clearInterval(timer); };
+  }, []);
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const t = I18N[lang];
@@ -47,7 +52,7 @@ export function Header({ lang, setLang, theme, setTheme, onOpenDemo }: Props) {
           <a href="#how" className="link">
             {t.nav.how}
           </a>
-          <a href="/subscribe" className="link">
+          <a href="#pricing" className="link">
             {t.nav.pricing}
           </a>
           <a href="#faq" className="link">

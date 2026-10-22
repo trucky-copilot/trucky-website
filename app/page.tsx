@@ -21,6 +21,8 @@ import type { Lang } from "@/lib/i18n";
 export default function HomePage() {
   const [lang, setLang] = useState<Lang>("es");
   const [theme, setTheme] = useState<"auto" | "light" | "dark">("auto");
+  const [demoSent, setDemoSent] = useState(false);
+  useEffect(() => { setDemoSent(new URLSearchParams(window.location.search).get("demo") === "sent"); }, []);
   const [demoOpen, setDemoOpen] = useState(false);
 
   // Hydrate persisted state after mount
@@ -58,6 +60,7 @@ export default function HomePage() {
         onOpenDemo={() => window.location.assign("/demo")}
       />
       <main>
+        {demoSent && <p role="status" style={{position:"fixed",bottom:24,left:24,zIndex:200,padding:20,background:"#24163b",color:"white",borderRadius:16}}>Solicitud enviada. Revisa tu correo y la carpeta de spam.</p>}
         <div role="note" style={{ padding: "12px 24px", textAlign: "center", background: "#151027", color: "#e2ddf5", position: "relative", zIndex: 10, marginTop: "var(--nav-h)" }}>
           Demo con Stripe en modo de pruebas. No uses tarjetas reales. No se realizarán cobros reales.
           {" "}<a href="/subscribe" style={{ textDecoration: "underline" }}>Mi suscripción / Ir a Trucky</a>
@@ -68,6 +71,7 @@ export default function HomePage() {
         <Solution lang={lang} />
         <HowItWorks lang={lang} />
 
+        <Pricing lang={lang} onOpenDemo={() => {}} />
         <FAQ lang={lang} />
         <FinalCTA lang={lang} onOpenDemo={() => window.location.assign("/demo")} />
       </main>

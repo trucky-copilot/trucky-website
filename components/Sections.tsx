@@ -193,7 +193,7 @@ export function Pricing({ lang, onOpenDemo }: { lang: Lang; onOpenDemo: () => vo
                   </li>
                 ))}
               </ul>
-              <button className={`btn ${p.highlight ? "btn-primary" : "btn-ghost"} btn-block`} onClick={onOpenDemo}>
+              <button className={`btn ${p.highlight ? "btn-primary" : "btn-ghost"} btn-block`} onClick={() => { if (i === 2) window.location.assign("mailto:trucky.road.copilot@gmail.com"); else window.location.assign(`/subscribe?plan=${i === 0 ? "owner_op" : "fleet"}`); }}>
                 {p.cta}
               </button>
             </div>

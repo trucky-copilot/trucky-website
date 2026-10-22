@@ -27,7 +27,9 @@ export async function POST(req: NextRequest) {
     if (org.subscription_status !== "none" || org.can_checkout !== true) return NextResponse.json({ error: "ALREADY_SUBSCRIBED" }, { status: 409 });
     stage = "configuration";
     const key = process.env.STRIPE_SECRET_KEY;
-    const priceId = process.env.STRIPE_PRICE_ID;
+    const plan = body.plan;
+    if (plan !== "owner_op" && plan !== "fleet") return NextResponse.json({ error: "PLAN_REQUIRED" }, { status: 400 });
+    const priceId = plan === "owner_op" ? process.env.STRIPE_PRICE_OWNER_OP : process.env.STRIPE_PRICE_FLEET;
     if (!key?.startsWith("sk_test_") || !priceId || !process.env.NEXTAUTH_URL) throw Error("CONFIGURATION_REQUIRED");
     const stripe = new Stripe(key);
     stage = "stripe_price";
@@ -38,6 +40,10 @@ export async function POST(req: NextRequest) {
     const coordinator = createCheckoutCoordinator(command);
     const attempt = await coordinator.reserve(org.id, identity.sub);
     if (Date.now() - attempt.createdAt > 20 * 60 * 60 * 1000) throw Error("RECONCILIATION_REQUIRED");
+    if (attempt.sessionId) {
+      const existing = await stripe.checkout.sessions.retrieve(attempt.sessionId, { expand: ["line_items"] });
+      if (existing.line_items?.data[0]?.price?.id !== priceId) throw Error("EXISTING_CHECKOUT_DIFFERENT_PLAN");
+    }
     const origin = new URL(process.env.NEXTAUTH_URL).origin;
     stage = "redis_payload";
     const payload = await canonicalCheckoutPayload(command, attempt, {
@@ -53,6 +59,7 @@ export async function POST(req: NextRequest) {
       success_url: `${origin}/subscribe?checkout=returned`,
       cancel_url: `${origin}/subscribe?checkout=canceled`,
     });
+    if (payload.line_items?.[0]?.price !== priceId) throw Error("EXISTING_CHECKOUT_DIFFERENT_PLAN");
     let supportedPayload = payload;
     let idempotencyKey = attempt.idempotencyKey;
     if (Object.hasOwn(payload, "payment_method_types") && !attempt.sessionId) {

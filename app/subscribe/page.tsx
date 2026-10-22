@@ -17,7 +17,7 @@ export default function Subscribe() {
   async function openCheckout(id: string) {
     setBusy(true); setError(""); setMessage("Abriendo Stripe para registrar tu tarjeta de prueba…");
     try {
-      const response = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ organization_id: id }) });
+      const response = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ organization_id: id, plan: new URLSearchParams(window.location.search).get("plan") }) });
       const body = await response.json();
       if (!response.ok) throw Error(body.error || "CHECKOUT_UNAVAILABLE");
       const url = new URL(body.url);
@@ -28,7 +28,7 @@ export default function Subscribe() {
   async function initialize() {
     try {
       const response = await fetch("/api/organizations", { cache: "no-store" });
-      if (response.status === 401) { await signIn("google", { callbackUrl: "/subscribe" }); return; }
+      if (response.status === 401) { await signIn("google", { callbackUrl: window.location.pathname + window.location.search }); return; }
       const body = await response.json();
       if (!response.ok) throw Error(body.error || "BASE44_UNAVAILABLE");
       const orgs: Org[] = body.organizations;
@@ -79,7 +79,7 @@ export default function Subscribe() {
     <p role="status">{message}</p>
     {error && <div role="alert" style={{ padding: 16, border: "1px solid #a78bfa", margin: "20px 0" }}>
       <p>{({ DEMO_ORGANIZATION_REQUIRED: "Esta empresa anterior no está habilitada para la demo pública. No se ha iniciado una compra.", SIGN_IN_REQUIRED: "La sesión expiró. Inicia sesión otra vez.", RECONCILIATION_REQUIRED: "Hay un intento pendiente que requiere revisión. No crees otra suscripción.", ALREADY_SUBSCRIBED: "Tu empresa ya tiene una suscripción.", SUBSCRIPTION_CONFIRMATION_PENDING: "La confirmación está pendiente. No repitas la compra. Puedes consultar el estado de nuevo actualizando esta página." }[error] || "No se pudo continuar. Código: " + error)}</p>
-      {error === "SIGN_IN_REQUIRED" && <button onClick={() => signIn("google", { callbackUrl: "/subscribe" })}>Iniciar sesión con Google</button>}
+      {error === "SIGN_IN_REQUIRED" && <button onClick={() => signIn("google", { callbackUrl: window.location.pathname + window.location.search })}>Iniciar sesión con Google</button>}
     </div>}
     {!busy && !error && organizations.length === 0 && <form onSubmit={create}>
       <label htmlFor="company">Nombre de tu empresa</label>
