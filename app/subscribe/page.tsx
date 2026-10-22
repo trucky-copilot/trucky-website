@@ -60,7 +60,7 @@ export default function Subscribe() {
         if (hasAccess(orgs[0])) { window.location.assign(APP_URL); return; }
         if (orgs[0].subscription_status === "none" && returned !== "canceled") { await openCheckout(orgs[0].id); return; }
       }
-      setBusy(false); setMessage(orgs.length ? "Selecciona tu empresa para continuar." : "Indica tu empresa para asociar correctamente la suscripción.");
+      setBusy(false); setMessage(orgs.length ? "Selecciona tu cuenta para continuar." : "Indica tu empresa para asociar correctamente la suscripción.");
     } catch (e) { setError(e instanceof Error ? e.message : "BASE44_UNAVAILABLE"); setBusy(false); }
   }
   useEffect(() => {
@@ -98,13 +98,13 @@ export default function Subscribe() {
     <a href="/">← Trucky</a><h1 className="h2">{planLabel}</h1>
 
     <p role="note">Modo de pruebas: no hay cobros reales. Usa solo tarjetas de prueba de Stripe.</p>
-    <p role="status">{message}</p>
+    {busy ? <div className="checkout-loading" role="status" aria-label="Cargando"><span className="checkout-spinner" aria-hidden="true" /><span className="sr-only">Cargando…</span></div> : <p role="status">{message}</p>}
     {error && <div role="alert" style={{ padding: 16, border: "1px solid #a78bfa", margin: "20px 0" }}>
       <p>{({ DEMO_ORGANIZATION_REQUIRED: "Esta empresa anterior no está habilitada para la demo pública. No se ha iniciado una compra.", SIGN_IN_REQUIRED: "La sesión expiró. Inicia sesión otra vez.", RECONCILIATION_REQUIRED: "Hay un intento pendiente que requiere revisión. No crees otra suscripción.", ALREADY_SUBSCRIBED: "Tu empresa ya tiene una suscripción.", SUBSCRIPTION_CONFIRMATION_PENDING: "La confirmación está pendiente. No repitas la compra. Puedes consultar el estado de nuevo actualizando esta página." }[error] || "No se pudo continuar. Código: " + error)}</p>
       {error === "SIGN_IN_REQUIRED" && <button onClick={() => signIn("google", { callbackUrl: window.location.pathname + window.location.search })}>Iniciar sesión con Google</button>}
     </div>}
     {!busy && !error && organizations.length === 0 && <p>Compra cancelada. Vuelve a los planes para continuar.</p>}
-    {!busy && !error && !needsLogin && organizations.length > 0 && <fieldset><legend>Tu empresa</legend>
+    {!busy && !error && !needsLogin && organizations.length > 0 && <fieldset><legend>Tu cuenta</legend>
       {organizations.map(org => <label key={org.id} style={{ display: "block", padding: 12 }}><input type="radio" name="org" checked={selected === org.id} onChange={() => setSelected(org.id)} /> {org.name}</label>)}
       <button className="btn btn-primary" disabled={!selected} onClick={() => {
         const org = organizations.find(o => o.id === selected);
