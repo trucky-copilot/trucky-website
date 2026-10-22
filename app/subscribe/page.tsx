@@ -88,7 +88,7 @@ export default function Subscribe() {
     <h1>Inicia sesión</h1>
 
     <button className="btn google-login-btn" onClick={() => signIn("google", { callbackUrl: window.location.pathname + window.location.search })}>
-      <span aria-hidden="true" style={{background:"white",color:"#4285f4",borderRadius:4,padding:"2px 7px",marginRight:12,fontWeight:800}}>G</span>
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" style={{marginRight:12,flexShrink:0}}><path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.39-.18-2.05H12v3.88h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.24c1.9-1.75 2.98-4.33 2.98-7.36Z"/><path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.62-2.41l-3.24-2.51c-.9.6-2.05.97-3.38.97-2.6 0-4.81-1.76-5.6-4.13H3.06v2.59A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.4 13.92a6 6 0 0 1 0-3.84V7.49H3.06a10 10 0 0 0 0 9.02l3.34-2.59Z"/><path fill="#EA4335" d="M12 5.95c1.47 0 2.79.5 3.82 1.5l2.87-2.87A9.6 9.6 0 0 0 12 2a10 10 0 0 0-8.94 5.49l3.34 2.59A5.98 5.98 0 0 1 12 5.95Z"/></svg>
       Continuar con Google
     </button>
     <p>Continúa con Google. Después de completar los datos de tarjeta en Stripe y confirmar la suscripción, te dirigiremos a la aplicación.</p>
@@ -100,7 +100,7 @@ export default function Subscribe() {
     <p role="note">Modo de pruebas: no hay cobros reales. Usa solo tarjetas de prueba de Stripe.</p>
     {busy ? <div className="checkout-loading" role="status" aria-label="Cargando"><span className="checkout-spinner" aria-hidden="true" /><span className="sr-only">Cargando…</span></div> : <p role="status">{message}</p>}
     {error && <div role="alert" style={{ padding: 16, border: "1px solid #a78bfa", margin: "20px 0" }}>
-      <p>{({ DEMO_ORGANIZATION_REQUIRED: "Esta empresa anterior no está habilitada para la demo pública. No se ha iniciado una compra.", SIGN_IN_REQUIRED: "La sesión expiró. Inicia sesión otra vez.", RECONCILIATION_REQUIRED: "Hay un intento pendiente que requiere revisión. No crees otra suscripción.", ALREADY_SUBSCRIBED: "Tu empresa ya tiene una suscripción.", SUBSCRIPTION_CONFIRMATION_PENDING: "La confirmación está pendiente. No repitas la compra. Puedes consultar el estado de nuevo actualizando esta página." }[error] || "No se pudo continuar. Código: " + error)}</p>
+      <p>{({ EXISTING_CHECKOUT_DIFFERENT_PLAN: "Ya hay un intento de otro plan para esta cuenta. Debemos comprobar y cerrar ese checkout antes de cambiar de plan, para evitar suscripciones duplicadas.", DEMO_ORGANIZATION_REQUIRED: "Esta empresa anterior no está habilitada para la demo pública. No se ha iniciado una compra.", SIGN_IN_REQUIRED: "La sesión expiró. Inicia sesión otra vez.", RECONCILIATION_REQUIRED: "Hay un intento pendiente que requiere revisión. No crees otra suscripción.", ALREADY_SUBSCRIBED: "Tu empresa ya tiene una suscripción.", SUBSCRIPTION_CONFIRMATION_PENDING: "La confirmación está pendiente. No repitas la compra. Puedes consultar el estado de nuevo actualizando esta página." }[error] || "No se pudo continuar. Código: " + error)}</p>
       {error === "SIGN_IN_REQUIRED" && <button onClick={() => signIn("google", { callbackUrl: window.location.pathname + window.location.search })}>Iniciar sesión con Google</button>}
     </div>}
     {!busy && !error && organizations.length === 0 && <p>Compra cancelada. Vuelve a los planes para continuar.</p>}

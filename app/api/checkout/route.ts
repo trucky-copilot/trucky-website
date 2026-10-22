@@ -3,12 +3,17 @@ import Stripe from "stripe";
 import { base44Call, googleIdentity, sameOrigin } from "@/lib/server/base44";
 import { createCheckoutCoordinator, redisCommandFromEnv } from "@/lib/server/checkout-coordinator.mjs";
 import { canonicalCheckoutPayload, recoverRejectedPayload } from "@/lib/server/checkout-payload.mjs";
+import { replaceUnconfirmedPlan } from "@/lib/server/change-checkout-plan.mjs";
 export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   if (!sameOrigin(req)) return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
   // Do not enable until provisioning webhook is deployed and acceptance tested.
   if (process.env.STRIPE_CHECKOUT_TEST_ENABLED !== "true" || (process.env.VERCEL_ENV !== "preview" && process.env.PUBLIC_TEST_DEMO_ENABLED !== "true")) return NextResponse.json({ error: "CHECKOUT_NOT_READY" }, { status: 503 });
   let stage = "identity";
+  let mutationKey: string | undefined;
+  let redis: ReturnType<typeof redisCommandFromEnv> | undefined;
+  let outcomeCertain = true;
+  const owner = crypto.randomUUID();
   try {
     const identity = await googleIdentity(req);
     const body = await req.json();
@@ -37,13 +42,18 @@ export async function POST(req: NextRequest) {
     if (!price.active || price.livemode || price.type !== "recurring" || price.recurring?.interval !== "month" || price.recurring.interval_count !== 1 || price.unit_amount === null || price.billing_scheme !== "per_unit") throw Error("INVALID_PRICE");
     stage = "redis_reserve";
     const command = redisCommandFromEnv();
+    redis = command;
+    const candidateMutationKey = `trucky:checkout:test:mutation:${org.id}`;
+    if (await command(["SET", candidateMutationKey, owner, "NX"]) !== "OK") throw Error("CHECKOUT_LOCKED");
+    mutationKey = candidateMutationKey;
     const coordinator = createCheckoutCoordinator(command);
-    const attempt = await coordinator.reserve(org.id, identity.sub);
+    let attempt = await coordinator.reserve(org.id, identity.sub);
+    stage = "stripe_previous_session";
+    // All checkout creation/replacement requests share the persistent mutation lock.
+    // Retain it on uncertain Stripe/Redis writes rather than allowing overlap.
+    outcomeCertain = false;
+    attempt = await replaceUnconfirmedPlan(stripe, coordinator, org.id, attempt, priceId, identity.sub);
     if (Date.now() - attempt.createdAt > 20 * 60 * 60 * 1000) throw Error("RECONCILIATION_REQUIRED");
-    if (attempt.sessionId) {
-      const existing = await stripe.checkout.sessions.retrieve(attempt.sessionId, { expand: ["line_items"] });
-      if (existing.line_items?.data[0]?.price?.id !== priceId) throw Error("EXISTING_CHECKOUT_DIFFERENT_PLAN");
-    }
     const origin = new URL(process.env.NEXTAUTH_URL).origin;
     stage = "redis_payload";
     const payload = await canonicalCheckoutPayload(command, attempt, {
@@ -78,6 +88,7 @@ export async function POST(req: NextRequest) {
     stage = "redis_attach";
     await coordinator.attach(org.id, attempt.id, session.id);
     if (session.status !== "open" || !session.url) throw Error("RECONCILIATION_REQUIRED");
+    outcomeCertain = true;
     return NextResponse.json({ url: session.url }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     const code = error instanceof Error ? error.message : "CHECKOUT_UNAVAILABLE";
@@ -85,7 +96,12 @@ export async function POST(req: NextRequest) {
     const sdk = error as { type?: string; code?: string; statusCode?: number; requestId?: string };
     const safe = (value: unknown) => typeof value === "string" && /^[a-zA-Z0-9_-]{1,100}$/.test(value) ? value : undefined;
     console.error("checkout_failure", { stage, category: safe(code), type: safe(sdk.type), code: safe(sdk.code), status: typeof sdk.statusCode === "number" ? sdk.statusCode : undefined, stripeRequestId: safe(sdk.requestId) });
-    const allowed = ["SIGN_IN_REQUIRED", "CHECKOUT_LOCKED", "RECONCILIATION_REQUIRED"];
+    if (["ALREADY_SUBSCRIBED", "EXISTING_CHECKOUT_DIFFERENT_PLAN"].includes(code)) outcomeCertain = true;
+    const allowed = ["ALREADY_SUBSCRIBED", "EXISTING_CHECKOUT_DIFFERENT_PLAN", "SIGN_IN_REQUIRED", "CHECKOUT_LOCKED", "RECONCILIATION_REQUIRED"];
     return NextResponse.json({ error: allowed.includes(code) ? code : "CHECKOUT_UNAVAILABLE" }, { status: code === "SIGN_IN_REQUIRED" ? 401 : allowed.includes(code) ? 409 : 503 });
+  } finally {
+    if (mutationKey && redis && outcomeCertain) {
+      try { await redis(["EVAL", "if redis.call('GET',KEYS[1]) == ARGV[1] then return redis.call('DEL',KEYS[1]) else return 0 end", "1", mutationKey, owner]); } catch {}
+    }
   }
 }
