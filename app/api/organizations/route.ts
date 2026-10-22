@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     if (result.user?.google_sub !== identity.sub || !Array.isArray(result.organizations)) throw Error("BASE44_UNAVAILABLE");
     const organizations = result.organizations.map((org: any) => {
       if (typeof org.id !== "string" || typeof org.name !== "string" || !["owner", "admin"].includes(org.role)) throw Error("BASE44_UNAVAILABLE");
-      return { id: org.id, name: org.name, subscription_status: org.subscription_status };
+      return { id: org.id, name: org.name, subscription_status: org.subscription_status, billing_demo_enabled: org.billing_demo_enabled === true };
     });
     return NextResponse.json({ organizations }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) { return failure(error); }

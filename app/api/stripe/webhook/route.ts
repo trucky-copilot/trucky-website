@@ -31,7 +31,10 @@ export async function POST(req: NextRequest) {
     let sub = await stripe.subscriptions.retrieve(id);
     const orgId = sub.metadata.org_id;
     const allowed = new Set((process.env.STRIPE_TEST_ORGANIZATION_IDS || "").split(",").map(s => s.trim()).filter(Boolean));
-    if (!orgId || !allowed.has(orgId)) return reply("TEST_ORGANIZATION_NOT_ALLOWED", 403);
+    if (!orgId || !/^[a-zA-Z0-9_-]{1,128}$/.test(orgId)) return reply("TEST_ORGANIZATION_NOT_ALLOWED", 403);
+    const publicEligible = process.env.PUBLIC_TEST_DEMO_ENABLED === "true" &&
+      await redis(["GET", `trucky:demo:test:eligible:${orgId}`]) === "1";
+    if (!allowed.has(orgId) && !publicEligible) return reply("TEST_ORGANIZATION_NOT_ALLOWED", 403);
     lock = `trucky:webhook:vercel:test:org:${orgId}`;
     acquired = await redis(["SET", lock, owner, "NX"]) === "OK";
     if (!acquired) return reply("RECONCILIATION_BUSY", 503);
