@@ -47,7 +47,17 @@ export async function POST(req: NextRequest) {
       headers: { Authorization: `Bearer ${serverSecret}`, "Content-Type": "application/json" },
       body: JSON.stringify({ organization_id: orgId, subscription_id: sub.id }),
     });
-    if (!result.ok || (await result.json()).code !== "SUBSCRIPTION_RECONCILED") throw Error();
+    const response = await result.json().catch(() => null);
+    // Only this explicit pre-write rejection is safe to unlock automatically.
+    if (result.status === 503 && response?.code === "SYNC_NOT_ENABLED") {
+      writeStarted = false;
+      return reply("BASE44_SYNC_NOT_ENABLED", 503);
+    }
+    if (!result.ok || response?.code !== "SUBSCRIPTION_RECONCILED") {
+      const known = ["UNAUTHORIZED", "TEST_ORGANIZATION_NOT_ALLOWED", "TEST_CONFIGURATION_REQUIRED", "SUBSCRIPTION_MISMATCH", "ORGANIZATION_NOT_FOUND", "BILLING_MAPPING_CONFLICT", "STATUS_REQUIRES_MIGRATION"];
+      console.error("billing_sync_rejected", { status: result.status, code: known.includes(response?.code) ? response.code : "UNKNOWN" });
+      throw Error();
+    }
     await redis(["SET", processed, sub.id]);
     done = true;
     return reply("SUBSCRIPTION_RECONCILED", 200);
