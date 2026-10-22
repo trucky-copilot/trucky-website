@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { sameOrigin } from '@/lib/server/base44';
+import { sameOrigin, googleIdentity, base44Call } from '@/lib/server/base44';
 import { redisCommandFromEnv } from '@/lib/server/checkout-coordinator.mjs';
 import { SENDER, TOKEN_KEY, decryptGmailToken } from '@/lib/server/gmail';
 export async function POST(req: NextRequest) {
@@ -18,6 +18,11 @@ export async function POST(req: NextRequest) {
     const redis = redisCommandFromEnv();
     const quota = await redis(['EVAL',"local n=redis.call('INCR',KEYS[1]); if n==1 then redis.call('EXPIRE',KEYS[1],86400) end; return n",'1',`trucky:demo:mail:quota:${user.sub}`]);
     if (quota > 3) return reply('DAILY_LIMIT',429);
+    if (process.env.DEMO_TRIAL_ACTIVATION_ENABLED !== 'true') return reply('TRIAL_ACTIVATION_NOT_READY',503);
+    const identity = await googleIdentity(req);
+    const activation = await base44Call('activateDemoTrial', { google_id_token: identity.idToken });
+    if (activation.code !== 'DEMO_TRIAL_ACTIVATED') return reply('TRIAL_ACTIVATION_FAILED',503);
+    if (activation.expired === true) return reply('DEMO_TRIAL_EXPIRED',409);
     const encrypted = await redis(['GET',TOKEN_KEY]);
     if (!encrypted) return reply('SENDER_NOT_CONNECTED',503);
     const refreshed = await fetch('https://oauth2.googleapis.com/token', {
