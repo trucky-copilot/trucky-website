@@ -3,6 +3,7 @@ import { base44Call, googleIdentity, sameOrigin } from "@/lib/server/base44";
 export const dynamic = "force-dynamic";
 function failure(error: unknown) {
   const code = error instanceof Error ? error.message : "BASE44_UNAVAILABLE";
+  console.error("organization_request_failed", { category: ["SIGN_IN_REQUIRED", "INTEGRATION_PENDING", "BASE44_UNAVAILABLE"].includes(code) ? code : "UNEXPECTED_BACKEND_RESPONSE" });
   const known = ["SIGN_IN_REQUIRED", "INTEGRATION_PENDING", "BASE44_UNAVAILABLE"].includes(code) ? code : "BASE44_UNAVAILABLE";
   return NextResponse.json({ error: known }, { status: known === "SIGN_IN_REQUIRED" ? 401 : 503, headers: { "Cache-Control": "no-store" } });
 }

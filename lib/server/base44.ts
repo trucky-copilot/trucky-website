@@ -22,6 +22,9 @@ export async function base44Call(name: "resolveUserOrganizations" | "createOrgan
     headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  if (!response.ok) throw new Error(response.status === 401 ? "SIGN_IN_REQUIRED" : "BASE44_UNAVAILABLE");
+  if (!response.ok) {
+    console.error("base44_request_failed", { operation: name, status: response.status });
+    throw new Error(response.status === 401 ? "SIGN_IN_REQUIRED" : "BASE44_UNAVAILABLE");
+  }
   return response.json();
 }

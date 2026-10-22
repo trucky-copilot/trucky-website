@@ -62,7 +62,7 @@ export default function Subscribe() {
     if (plan !== "owner_op" && plan !== "fleet" && !new URLSearchParams(window.location.search).has("checkout")) {
       setError("Selecciona Owner-Op o Flota desde los planes."); setBusy(false); return;
     }
-    setPlanLabel(plan === "owner_op" ? "Owner-Op" : plan === "fleet" ? "Flota" : "Tu suscripción");
+    setPlanLabel(plan === "owner_op" ? "Plan $29" : plan === "fleet" ? "Plan $99" : "Tu suscripción");
     void initialize();
   }, []);
   async function create(e: React.FormEvent) {
@@ -88,7 +88,7 @@ export default function Subscribe() {
   </section></main>;
   return <main className="demo-page"><section className="demo-card">
     <a href="/">← Trucky</a><h1 className="h2">{planLabel}</h1>
-    <p>Primeros 30 días gratis. El importe del plan seleccionado se mostrará en Stripe antes de confirmar.</p>
+
     <p role="note">Modo de pruebas: no hay cobros reales. Usa solo tarjetas de prueba de Stripe.</p>
     <p role="status">{message}</p>
     {error && <div role="alert" style={{ padding: 16, border: "1px solid #a78bfa", margin: "20px 0" }}>
