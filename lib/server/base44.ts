@@ -23,7 +23,11 @@ export async function base44Call(name: "resolveUserOrganizations" | "createOrgan
     body: JSON.stringify(data),
   });
   if (!response.ok) {
-    console.error("base44_request_failed", { operation: name, status: response.status });
+    const payload = await response.json().catch(() => null);
+    const activationCodes = ["ACTIVATION_NOT_ENABLED", "ACTIVATION_REQUIRES_REVIEW", "INVALID_TOKEN", "UNAUTHORIZED", "METHOD_NOT_ALLOWED"];
+    const code = name === "activateDemoTrial" && activationCodes.includes(payload?.code) ? payload.code : "UNRECOGNIZED_BACKEND_ERROR";
+    console.error("base44_request_failed", { operation: name, status: response.status, code });
+    if (name === "activateDemoTrial" && activationCodes.includes(code)) throw new Error(code);
     throw new Error(response.status === 401 ? "SIGN_IN_REQUIRED" : "BASE44_UNAVAILABLE");
   }
   return response.json();

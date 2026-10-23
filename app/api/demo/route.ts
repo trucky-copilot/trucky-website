@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
     if (!sent.ok) return reply('EMAIL_NOT_SENT',503);
     return reply('EMAIL_ACCEPTED',200);
   } catch (error) {
+    if (error instanceof Error && ['ACTIVATION_NOT_ENABLED','ACTIVATION_REQUIRES_REVIEW','INVALID_TOKEN','UNAUTHORIZED'].includes(error.message)) return reply(error.message,503);
     if (error instanceof Error && error.message === 'SIGN_IN_REQUIRED') return reply('SIGN_IN_REQUIRED',401);
     return reply('DEMO_REQUEST_REQUIRES_REVIEW',503);
   }
