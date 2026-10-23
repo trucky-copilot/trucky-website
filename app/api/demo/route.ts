@@ -1,3 +1,4 @@
+import { isValidPhone } from '@/lib/phone-validation.mjs';
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { sameOrigin, googleIdentity, base44Call } from '@/lib/server/base44';
@@ -14,7 +15,8 @@ export async function POST(req: NextRequest) {
     const phone = typeof body.phone === 'string' ? body.phone.trim() : '';
     const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
     // Fixed verified recipient prevents turning this form into an email relay.
-    if (!name || name.length>100 || !/^[+\d ()-]{7,30}$/.test(phone) || email !== user.email.toLowerCase()) return reply('INVALID_DETAILS',400);
+    if (!isValidPhone(phone)) return reply('INVALID_PHONE',400);
+    if (!name || name.length>100 || email !== user.email.toLowerCase()) return reply('INVALID_DETAILS',400);
     const redis = redisCommandFromEnv();
     const quota = await redis(['EVAL',"local n=redis.call('INCR',KEYS[1]); if n==1 then redis.call('EXPIRE',KEYS[1],86400) end; return n",'1',`trucky:demo:mail:quota:${user.sub}`]);
     if (quota > 3) return reply('DAILY_LIMIT',429);
