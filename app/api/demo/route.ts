@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { sameOrigin } from '@/lib/server/base44';
+import { sameOrigin, googleIdentity, base44Call } from '@/lib/server/base44';
 import { redisCommandFromEnv } from '@/lib/server/checkout-coordinator.mjs';
 import { SENDER, TOKEN_KEY, decryptGmailToken } from '@/lib/server/gmail';
 export async function POST(req: NextRequest) {
@@ -18,6 +18,14 @@ export async function POST(req: NextRequest) {
     const redis = redisCommandFromEnv();
     const quota = await redis(['EVAL',"local n=redis.call('INCR',KEYS[1]); if n==1 then redis.call('EXPIRE',KEYS[1],86400) end; return n",'1',`trucky:demo:mail:quota:${user.sub}`]);
     if (quota > 3) return reply('DAILY_LIMIT',429);
+    if (process.env.DEMO_TRIAL_ACTIVATION_ENABLED !== 'true') return reply('TRIAL_ACTIVATION_NOT_READY',503);
+    const identity = await googleIdentity(req);
+    const activation = await base44Call('activateDemoTrial', { google_id_token: identity.idToken });
+    if (activation.code !== 'DEMO_TRIAL_ACTIVATED') return reply('TRIAL_ACTIVATION_FAILED',503);
+    const start = Date.parse(activation.trial_started_at || '');
+    const end = Date.parse(activation.trial_ends_at || '');
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end - start !== 30 * 86400000) return reply('TRIAL_DATES_INVALID',503);
+    if (activation.expired === true) return reply('DEMO_TRIAL_EXPIRED',409);
     const encrypted = await redis(['GET',TOKEN_KEY]);
     if (!encrypted) return reply('SENDER_NOT_CONNECTED',503);
     const refreshed = await fetch('https://oauth2.googleapis.com/token', {
@@ -33,5 +41,8 @@ export async function POST(req: NextRequest) {
     const sent = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {method:'POST',headers:{Authorization:`Bearer ${token.access_token}`,'Content-Type':'application/json'},body:JSON.stringify({raw}),signal:AbortSignal.timeout(15000)});
     if (!sent.ok) return reply('EMAIL_NOT_SENT',503);
     return reply('EMAIL_ACCEPTED',200);
-  } catch { return reply('EMAIL_STATUS_UNKNOWN',503); }
+  } catch (error) {
+    if (error instanceof Error && error.message === 'SIGN_IN_REQUIRED') return reply('SIGN_IN_REQUIRED',401);
+    return reply('DEMO_REQUEST_REQUIRES_REVIEW',503);
+  }
 }

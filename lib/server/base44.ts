@@ -12,7 +12,7 @@ export function sameOrigin(req: NextRequest) {
   const configured = process.env.NEXTAUTH_URL;
   return !!configured && req.headers.get("origin") === new URL(configured).origin;
 }
-export async function base44Call(name: "resolveUserOrganizations" | "createOrganizationForUser", data: Record<string, unknown>) {
+export async function base44Call(name: "resolveUserOrganizations" | "createOrganizationForUser" | "activateDemoTrial", data: Record<string, unknown>) {
   // Disabled until the backend identity PR is deployed and tested.
   if (process.env.BASE44_ORGANIZATIONS_ENABLED !== "true") throw new Error("INTEGRATION_PENDING");
   const secret = process.env.TRUCKY_SERVER_SECRET;
