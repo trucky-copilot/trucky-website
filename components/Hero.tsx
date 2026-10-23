@@ -82,7 +82,7 @@ export function Hero({ lang, onOpenDemo }: Props) {
             </div>
             <div>
               <div style={{ fontWeight: 600, fontSize: 14 }}>{t.microtrust_title}</div>
-              <div className="hero-microtrust-sub" style={{ fontSize: 12 }}>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.65)" }}>
                 {t.microtrust_sub}
               </div>
             </div>
