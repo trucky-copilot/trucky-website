@@ -1425,3 +1425,17 @@ main form label input { display:block; width:100%; padding:12px; margin-top:6px;
 
 .account-avatar { width:34px; height:34px; border-radius:50%; object-fit:cover; display:block; border:2px solid #a88ad5; }
 .account-avatar-fallback { display:flex; align-items:center; justify-content:center; background:#5b2bd6; color:white; font-size:15px; font-weight:700; }
+
+/* Language control keeps one palette across scrolling and theme changes. */
+.nav .lang-toggle, .nav.scrolled .lang-toggle {
+  background:#241938;
+  border-color:#493568;
+}
+.nav .lang-toggle button, .nav.scrolled .lang-toggle button {
+  color:#e2ddf5;
+  background:transparent;
+}
+.nav .lang-toggle button.active, .nav.scrolled .lang-toggle button.active {
+  background:#fff;
+  color:#6332ce;
+}
