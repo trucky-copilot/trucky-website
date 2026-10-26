@@ -76,6 +76,12 @@ export default function Subscribe() {
   useEffect(() => {
     if (started.current) return;
     started.current = true;
+    // Old Stripe sessions retain their original cancel URL. Send that return
+    // straight home without running account lookup or opening checkout again.
+    if (new URLSearchParams(window.location.search).get("checkout") === "canceled") {
+      window.location.replace("/#pricing");
+      return;
+    }
     const plan = new URLSearchParams(window.location.search).get("plan");
     if (plan !== "owner_op" && plan !== "fleet" && !new URLSearchParams(window.location.search).has("checkout")) {
       setError("Selecciona Owner-Op o Flota desde los planes."); setBusy(false); return;
