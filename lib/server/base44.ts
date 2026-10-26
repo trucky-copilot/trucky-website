@@ -28,7 +28,7 @@ export async function base44Call(name: "resolveUserOrganizations" | "createOrgan
     const code = name === "activateDemoTrial" && activationCodes.includes(payload?.code) ? payload.code : "UNRECOGNIZED_BACKEND_ERROR";
     console.error("base44_request_failed", { operation: name, status: response.status, code });
     if (name === "activateDemoTrial" && activationCodes.includes(code)) throw new Error(code);
-    throw new Error(response.status === 401 ? "SIGN_IN_REQUIRED" : "BASE44_UNAVAILABLE");
+    throw new Error(response.status === 401 ? "BASE44_AUTHENTICATION_FAILED" : "BASE44_UNAVAILABLE");
   }
   return response.json();
 }

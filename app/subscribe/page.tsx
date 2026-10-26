@@ -1,7 +1,7 @@
 "use client";
 import { useFlowLanguage } from "@/lib/useFlowLanguage";
 import { useEffect, useRef, useState } from "react";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 type Org = { id: string; name: string; subscription_status?: string; billing_demo_enabled?: boolean };
 const APP_URL = "https://trucky-17a283d5.base44.app/";
 const hasAccess = (org: Org) => ["trialing", "active"].includes(org.subscription_status || "");
@@ -31,7 +31,15 @@ export default function Subscribe() {
   async function initialize() {
     try {
       const response = await fetch("/api/organizations", { cache: "no-store" });
-      if (response.status === 401) { setNeedsLogin(true); setBusy(false); setMessage(""); return; }
+      if (response.status === 401) {
+        const existingSession = await getSession();
+        if (existingSession?.user) {
+          // Keep the existing website session. An expired backend credential is
+          // not evidence that the user signed out.
+          setError("GOOGLE_AUTHORIZATION_EXPIRED"); setBusy(false); setMessage(""); return;
+        }
+        setNeedsLogin(true); setBusy(false); setMessage(""); return;
+      }
       const body = await response.json();
       if (!response.ok) throw Error(body.error || "BASE44_UNAVAILABLE");
       const orgs: Org[] = body.organizations;
@@ -109,7 +117,7 @@ export default function Subscribe() {
 "Indica tu empresa para asociar correctamente la suscripción.":"Choose your company to link the subscription."
 } as Record<string,string>)[message] || message)}</p>}
     {error && <div role="alert" style={{ padding: 16, border: "1px solid #a78bfa", margin: "20px 0" }}>
-      <p>{t(({ LEGACY_TRIAL_CHECKOUT_REQUIRES_REVIEW: "Este intento antiguo incluía un mes gratis y requiere revisión. No se ha creado una nueva contratación.", EXISTING_CHECKOUT_DIFFERENT_PLAN: "Ya hay un intento de otro plan para esta cuenta. Debemos comprobar y cerrar ese checkout antes de cambiar de plan, para evitar suscripciones duplicadas.", DEMO_ORGANIZATION_REQUIRED: "Esta empresa anterior no está habilitada para la demo pública. No se ha iniciado una compra.", SIGN_IN_REQUIRED: "La sesión expiró. Inicia sesión otra vez.", RECONCILIATION_REQUIRED: "Hay un intento pendiente que requiere revisión. No crees otra suscripción.", ALREADY_SUBSCRIBED: "Tu empresa ya tiene una suscripción.", SUBSCRIPTION_CONFIRMATION_PENDING: "La confirmación está pendiente. No repitas la compra. Puedes consultar el estado de nuevo actualizando esta página." }[error] || "No se pudo continuar. Código: " + error), "Unable to continue. Code: " + error + ". Do not create another subscription if a previous attempt is pending.")}</p>
+      <p>{t(({ GOOGLE_AUTHORIZATION_EXPIRED: "Tu sesión sigue abierta, pero la autorización de Google expiró. Es necesario renovarla para continuar de forma segura.", BASE44_AUTHENTICATION_FAILED: "Tu sesión está abierta. Hay un problema de autenticación entre servidores; no necesitas cerrar sesión.", LEGACY_TRIAL_CHECKOUT_REQUIRES_REVIEW: "Este intento antiguo incluía un mes gratis y requiere revisión. No se ha creado una nueva contratación.", EXISTING_CHECKOUT_DIFFERENT_PLAN: "Ya hay un intento de otro plan para esta cuenta. Debemos comprobar y cerrar ese checkout antes de cambiar de plan, para evitar suscripciones duplicadas.", DEMO_ORGANIZATION_REQUIRED: "Esta empresa anterior no está habilitada para la demo pública. No se ha iniciado una compra.", SIGN_IN_REQUIRED: "La sesión expiró. Inicia sesión otra vez.", RECONCILIATION_REQUIRED: "Hay un intento pendiente que requiere revisión. No crees otra suscripción.", ALREADY_SUBSCRIBED: "Tu empresa ya tiene una suscripción.", SUBSCRIPTION_CONFIRMATION_PENDING: "La confirmación está pendiente. No repitas la compra. Puedes consultar el estado de nuevo actualizando esta página." }[error] || "No se pudo continuar. Código: " + error), "Unable to continue. Code: " + error + ". Do not create another subscription if a previous attempt is pending.")}</p>
       {error === "SIGN_IN_REQUIRED" && <button onClick={() => signIn("google", { callbackUrl: window.location.pathname + window.location.search })}>{t('Iniciar sesión con Google','Sign in with Google')}</button>}
     </div>}
     {!busy && !error && organizations.length === 0 && <p>{t('Compra cancelada. Vuelve a los planes para continuar.','Checkout canceled. Return to the plans to continue.')}</p>}
