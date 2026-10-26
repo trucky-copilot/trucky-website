@@ -7,6 +7,8 @@ const APP_URL = "https://trucky-17a283d5.base44.app/";
 const hasAccess = (org: Org) => ["trialing", "active"].includes(org.subscription_status || "");
 export default function Subscribe() {
   const t=useFlowLanguage();
+  const [billingMode,setBillingMode]=useState('loading');
+  useEffect(()=>{fetch('/api/billing-mode',{cache:'no-store'}).then(r=>r.json()).then(b=>setBillingMode(b.enabled?b.mode:'unavailable')).catch(()=>setBillingMode('unavailable'));},[]);
   const started = useRef(false);
   const [organizations, setOrganizations] = useState<Org[]>([]);
   const [selected, setSelected] = useState("");
@@ -18,7 +20,7 @@ export default function Subscribe() {
   const [planLabel, setPlanLabel] = useState("");
 
   async function openCheckout(id: string) {
-    setBusy(true); setError(""); setMessage("Abriendo Stripe para registrar tu tarjeta de prueba…");
+    setBusy(true); setError(""); setMessage("Abriendo Stripe para registrar tu tarjeta…");
     try {
       const response = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ organization_id: id, plan: new URLSearchParams(window.location.search).get("plan") }) });
       const body = await response.json();
@@ -108,7 +110,7 @@ export default function Subscribe() {
       {t('Continuar con Google','Continue with Google')}
     </button>
     <p>{t('Continúa con Google. Después de completar los datos de tarjeta en Stripe y confirmar la suscripción, te dirigiremos a la aplicación.','Continue with Google. After entering your card details in Stripe and confirming your subscription, you will be redirected to the app.')}</p>
-    <p>{t('Modo de pruebas: no uses una tarjeta real.','Test mode: do not use a real card.')}</p>
+    <p>{billingMode === 'live' ? t('Cobro mensual desde la contratación. Confirma el importe en Stripe.','Monthly billing starts at checkout. Confirm the amount in Stripe.') : billingMode === 'test' ? t('Modo de pruebas: no uses una tarjeta real.','Test mode: do not use a real card.') : t('Comprobando disponibilidad del pago…','Checking payment availability…')}</p>
   </section></main>;
   // Keep authorization, tenant resolution and redirects running; suppress only
   // the presentation while no user decision or error needs to be shown.
@@ -118,10 +120,10 @@ export default function Subscribe() {
   return <main className="demo-page"><section className="demo-card">
     <a href="/">← Trucky</a><h1 className="h2" style={{ textAlign: "center" }}>{planLabel === "Tu suscripción" ? t("Tu suscripción","Your subscription") : planLabel}</h1>
 
-    <p role="note">{t('Modo de pruebas: no hay cobros reales. Usa solo tarjetas de prueba de Stripe.','Test mode: no real charges. Use Stripe test cards only.')}</p>
+    <p role="note">{billingMode === 'live' ? t('Pago seguro con Stripe. Los planes son mensuales y no incluyen mes gratuito.','Secure payment with Stripe. Plans are monthly and do not include a free month.') : billingMode === 'test' ? t('Modo de pruebas: no hay cobros reales. Usa solo tarjetas de prueba de Stripe.','Test mode: no real charges. Use Stripe test cards only.') : t('Comprobando disponibilidad del pago…','Checking payment availability…')}</p>
     {busy ? <div className="checkout-loading" role="status" aria-label={t("Cargando","Loading")}><span className="checkout-spinner" aria-hidden="true" /><span className="sr-only">{t("Cargando…","Loading…")}</span></div> : <p role="status">{t(message, ({
 "Preparando el pago seguro…":"Preparing secure checkout…",
-"Abriendo Stripe para registrar tu tarjeta de prueba…":"Opening Stripe for your test card…",
+"Abriendo Stripe para registrar tu tarjeta…":"Opening Stripe to enter your card…",
 "Preparando tu cuenta para continuar a Stripe…":"Preparing your account for Stripe…",
 "Confirmando la suscripción con el servidor…":"Confirming your subscription with the server…",
 "Selecciona tu cuenta para continuar.":"Select your account to continue.",
