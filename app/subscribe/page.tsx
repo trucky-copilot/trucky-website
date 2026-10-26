@@ -104,6 +104,11 @@ export default function Subscribe() {
     <p>{t('Continúa con Google. Después de completar los datos de tarjeta en Stripe y confirmar la suscripción, te dirigiremos a la aplicación.','Continue with Google. After entering your card details in Stripe and confirming your subscription, you will be redirected to the app.')}</p>
     <p>{t('Modo de pruebas: no uses una tarjeta real.','Test mode: do not use a real card.')}</p>
   </section></main>;
+  // Keep authorization, tenant resolution and redirects running; suppress only
+  // the presentation while no user decision or error needs to be shown.
+  if (busy && !error) return <main className="demo-page" aria-busy="true">
+    <span className="sr-only" role="status">{t("Abriendo pago seguro…", "Opening secure checkout…")}</span>
+  </main>;
   return <main className="demo-page"><section className="demo-card">
     <a href="/">← Trucky</a><h1 className="h2" style={{ textAlign: "center" }}>{planLabel === "Tu suscripción" ? t("Tu suscripción","Your subscription") : planLabel}</h1>
 
