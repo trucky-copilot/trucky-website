@@ -1,5 +1,6 @@
 "use client";
 
+import { PlanCheckoutButton } from "./PlanCheckoutButton";
 import { useState } from "react";
 import { Icon } from "./Icons";
 import { I18N, type Lang } from "@/lib/i18n";
@@ -193,9 +194,7 @@ export function Pricing({ lang, onOpenDemo }: { lang: Lang; onOpenDemo: () => vo
                   </li>
                 ))}
               </ul>
-              <button className={`btn ${p.highlight ? "btn-primary" : "btn-ghost"} btn-block`} onClick={() => { if (i === 2) window.location.assign("mailto:trucky.road.copilot@gmail.com"); else window.location.assign(`/subscribe?plan=${i === 0 ? "owner_op" : "fleet"}&lang=${lang}`); }}>
-                {p.cta}
-              </button>
+              {i < 2 ? <PlanCheckoutButton plan={i === 0 ? "owner_op" : "fleet"} lang={lang} label={p.cta} className={`btn ${p.highlight ? "btn-primary" : "btn-ghost"} btn-block`} /> : <a className="btn btn-ghost btn-block" href="mailto:trucky.road.copilot@gmail.com">{p.cta}</a>}
             </div>
           ))}
         </div>

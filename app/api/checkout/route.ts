@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
       subscription_data: { metadata: { org_id: org.id, reservation_id: attempt.id } },
       expires_at: Math.floor(attempt.createdAt / 1000) + 1800,
       success_url: `${origin}/subscribe?checkout=returned`,
-      cancel_url: `${origin}/subscribe?checkout=canceled`,
+      cancel_url: `${origin}/#pricing`,
     });
     // Cached attempts retain immutable Stripe parameters. Never silently reuse a
     // free-trial request after switching paid plans to immediate billing.
