@@ -33,11 +33,22 @@ export async function POST(req: NextRequest) {
     // Strictly permit first subscriptions only. Recovery/resubscription needs a separate flow.
     if (org.subscription_status !== "none" || org.can_checkout !== true) return NextResponse.json({ error: "ALREADY_SUBSCRIBED" }, { status: 409 });
     stage = "configuration";
-    const key = process.env.STRIPE_SECRET_KEY;
+    const key = live ? process.env.STRIPE_LIVE_SECRET_KEY : process.env.STRIPE_SECRET_KEY;
     const plan = body.plan;
     if (plan !== "owner_op" && plan !== "fleet") return NextResponse.json({ error: "PLAN_REQUIRED" }, { status: 400 });
-    const priceId = plan === "owner_op" ? process.env.STRIPE_PRICE_OWNER_OP : process.env.STRIPE_PRICE_FLEET;
+    const priceId = live ? (plan === "owner_op" ? process.env.STRIPE_LIVE_PRICE_OWNER_OP : process.env.STRIPE_LIVE_PRICE_FLEET) : (plan === "owner_op" ? process.env.STRIPE_PRICE_OWNER_OP : process.env.STRIPE_PRICE_FLEET);
     if (!key || !priceId || !process.env.NEXTAUTH_URL) throw Error("CONFIGURATION_REQUIRED");
+    if (live) {
+      stage = "live_backend_preflight";
+      const serverSecret = process.env.TRUCKY_SERVER_SECRET;
+      if (!serverSecret) throw Error("CONFIGURATION_REQUIRED");
+      const ready = await fetch("https://trucky-17a283d5.base44.app/api/functions/checkLiveBillingConfiguration", {
+        method:"POST", redirect:"error", signal:AbortSignal.timeout(15000),
+        headers:{Authorization:`Bearer ${serverSecret}`,"Content-Type":"application/json"},
+        body:JSON.stringify({prices:[process.env.STRIPE_LIVE_PRICE_OWNER_OP,process.env.STRIPE_LIVE_PRICE_FLEET]}),
+      });
+      if (!ready.ok || (await ready.json()).code !== "LIVE_CONFIGURATION_VALID") throw Error("LIVE_BACKEND_NOT_READY");
+    }
     const stripe = new Stripe(key);
     stage = "stripe_price";
     const price = await stripe.prices.retrieve(priceId);

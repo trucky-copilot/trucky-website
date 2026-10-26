@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { stripeMode } from "@/lib/server/stripe-mode.mjs";
 export const dynamic = "force-dynamic";
 export async function GET() {
-  const key = process.env.STRIPE_SECRET_KEY;
+  const key = process.env.STRIPE_MODE === "live" ? process.env.STRIPE_LIVE_SECRET_KEY : process.env.STRIPE_SECRET_KEY;
   const id = process.env.STRIPE_PRICE_ID;
   if (!key || !id) return NextResponse.json({ error: "Plan de prueba no configurado" }, { status: 503 });
   try {

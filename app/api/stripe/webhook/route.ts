@@ -6,8 +6,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   const reply = (code: string, status: number) => NextResponse.json({ code }, { status });
-  const key = process.env.STRIPE_SECRET_KEY;
-  const secret = process.env.STRIPE_WEBHOOK_SECRET;
+  const key = process.env.STRIPE_MODE === "live" ? process.env.STRIPE_LIVE_SECRET_KEY : process.env.STRIPE_SECRET_KEY;
+  const secret = process.env.STRIPE_MODE === "live" ? process.env.STRIPE_LIVE_WEBHOOK_SECRET : process.env.STRIPE_WEBHOOK_SECRET;
   let billing;
   try { billing = stripeMode(); } catch { return reply("STRIPE_CONFIGURATION_REQUIRED",503); }
   const {mode,live} = billing;
