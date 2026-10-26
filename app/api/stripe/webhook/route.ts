@@ -1,13 +1,17 @@
 import Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
 import { redisCommandFromEnv } from "@/lib/server/checkout-coordinator.mjs";
+import { stripeMode } from "@/lib/server/stripe-mode.mjs";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   const reply = (code: string, status: number) => NextResponse.json({ code }, { status });
   const key = process.env.STRIPE_SECRET_KEY;
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
-  if ((process.env.VERCEL_ENV !== "preview" && process.env.PUBLIC_TEST_DEMO_ENABLED !== "true") || !key?.startsWith("sk_test_") || !secret) return reply("TEST_CONFIGURATION_REQUIRED", 503);
+  let billing;
+  try { billing = stripeMode(); } catch { return reply("STRIPE_CONFIGURATION_REQUIRED",503); }
+  const {mode,live} = billing;
+  if (!key || !secret) return reply("STRIPE_CONFIGURATION_REQUIRED",503);
   const stripe = new Stripe(key);
   let event: Stripe.Event;
   try {
@@ -15,8 +19,8 @@ export async function POST(req: NextRequest) {
     if (body.length > 1048576) return reply("PAYLOAD_TOO_LARGE", 413);
     event = stripe.webhooks.constructEvent(body, req.headers.get("stripe-signature") || "", secret);
   } catch { return reply("INVALID_SIGNATURE", 400); }
-  if (event.livemode) return reply("LIVE_EVENTS_NOT_ALLOWED", 400);
-  if (process.env.STRIPE_WEBHOOK_TEST_ENABLED !== "true") return reply("PROVISIONING_NOT_ENABLED", 503);
+  if (event.livemode !== live) return reply("LIVE_EVENTS_NOT_ALLOWED", 400);
+  if ((live ? process.env.STRIPE_LIVE_PAYMENTS_ENABLED !== "true" : process.env.STRIPE_WEBHOOK_TEST_ENABLED !== "true")) return reply("PROVISIONING_NOT_ENABLED", 503);
   const supported = ["customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted", "customer.subscription.trial_will_end", "invoice.paid", "invoice.payment_failed", "checkout.session.completed", "checkout.session.expired"];
   if (!supported.includes(event.type)) return reply("IGNORED", 200);
   let lock: string | undefined;
@@ -34,21 +38,21 @@ export async function POST(req: NextRequest) {
     if (!orgId || !/^[a-zA-Z0-9_-]{1,128}$/.test(orgId)) return reply("TEST_ORGANIZATION_NOT_ALLOWED", 403);
     const publicEligible = process.env.PUBLIC_TEST_DEMO_ENABLED === "true" &&
       await redis(["GET", `trucky:demo:test:eligible:${orgId}`]) === "1";
-    if (!allowed.has(orgId) && !publicEligible) return reply("TEST_ORGANIZATION_NOT_ALLOWED", 403);
-    lock = `trucky:webhook:vercel:test:org:${orgId}`;
+    if (!live && !allowed.has(orgId) && !publicEligible) return reply("TEST_ORGANIZATION_NOT_ALLOWED", 403);
+    lock = `trucky:webhook:vercel:${mode}:org:${orgId}`;
     acquired = await redis(["SET", lock, owner, "NX"]) === "OK";
     if (!acquired) return reply("RECONCILIATION_BUSY", 503);
-    const processed = `trucky:webhook:vercel:test:event:${event.id}`;
+    const processed = `trucky:webhook:vercel:${mode}:event:${event.id}`;
     if (await redis(["GET", processed])) { done = true; return reply("ALREADY_PROCESSED", 200); }
     sub = await stripe.subscriptions.retrieve(id);
-    if (sub.livemode || sub.metadata.org_id !== orgId) throw Error();
+    if (sub.livemode !== live || sub.metadata.org_id !== orgId) throw Error();
     const serverSecret = process.env.TRUCKY_SERVER_SECRET;
     if (!serverSecret) throw Error();
     writeStarted = true;
     const result = await fetch("https://trucky-17a283d5.base44.app/api/functions/syncBillingSubscription", {
       method: "POST", redirect: "error", signal: AbortSignal.timeout(15000),
       headers: { Authorization: `Bearer ${serverSecret}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ organization_id: orgId, subscription_id: sub.id }),
+      body: JSON.stringify({ organization_id: orgId, subscription_id: sub.id, mode }),
     });
     const response = await result.json().catch(() => null);
     // Only this explicit pre-write rejection is safe to unlock automatically.
@@ -56,7 +60,7 @@ export async function POST(req: NextRequest) {
       writeStarted = false;
       return reply("BASE44_SYNC_NOT_ENABLED", 503);
     }
-    if (!result.ok || response?.code !== "SUBSCRIPTION_RECONCILED") {
+    if (!result.ok || response?.code !== "SUBSCRIPTION_RECONCILED" || (live && response?.mode !== "live")) {
       const known = ["UNAUTHORIZED", "TEST_ORGANIZATION_NOT_ALLOWED", "TEST_CONFIGURATION_REQUIRED", "SUBSCRIPTION_MISMATCH", "ORGANIZATION_NOT_FOUND", "BILLING_MAPPING_CONFLICT", "STATUS_REQUIRES_MIGRATION"];
       console.error("billing_sync_rejected", { status: result.status, code: known.includes(response?.code) ? response.code : "UNKNOWN" });
       throw Error();

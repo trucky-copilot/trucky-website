@@ -20,7 +20,7 @@ export async function base44Call(name: "resolveUserOrganizations" | "createOrgan
   const response = await fetch(`https://trucky-17a283d5.base44.app/api/functions/${name}`, {
     method: "POST", redirect: "error", cache: "no-store", signal: AbortSignal.timeout(15000),
     headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
-    body: JSON.stringify(data),
+    body: JSON.stringify({ ...data, ...(name === "resolveUserOrganizations" ? { mode: process.env.STRIPE_MODE || "test" } : {}) }),
   });
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
