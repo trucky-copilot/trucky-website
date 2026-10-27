@@ -21,3 +21,8 @@ test('live coordinator refuses test session ID before Redis mutation',async()=>{
  await assert.rejects(c.attach('org','a','cs_test_x'),/INVALID_TEST_SESSION/);
  assert.equal(called,false);
 });
+
+test('restricted live keys accepted; public and test keys rejected',()=>{
+ assert.deepEqual(stripeMode({STRIPE_MODE:'live',VERCEL_ENV:'production',STRIPE_LIVE_SECRET_KEY:'rk_live_fixture'}),{mode:'live',live:true});
+ for(const key of ['pk_live_fixture','rk_test_fixture','whsec_fixture','rk_live_'])assert.throws(()=>stripeMode({STRIPE_MODE:'live',VERCEL_ENV:'production',STRIPE_LIVE_SECRET_KEY:key}),/MISMATCH/);
+});
