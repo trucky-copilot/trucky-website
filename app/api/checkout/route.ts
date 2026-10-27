@@ -1,0 +1,123 @@
+import { NextRequest, NextResponse } from "next/server";
+import Stripe from "stripe";
+import { base44Call, googleIdentity, sameOrigin } from "@/lib/server/base44";
+import { createCheckoutCoordinator, redisCommandFromEnv } from "@/lib/server/checkout-coordinator.mjs";
+import { canonicalCheckoutPayload, recoverRejectedPayload } from "@/lib/server/checkout-payload.mjs";
+import { replaceUnconfirmedPlan } from "@/lib/server/change-checkout-plan.mjs";
+import { stripeMode } from "@/lib/server/stripe-mode.mjs";
+export const dynamic = "force-dynamic";
+export async function POST(req: NextRequest) {
+  if (!sameOrigin(req)) return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+  // Do not enable until provisioning webhook is deployed and acceptance tested.
+  if ((process.env.STRIPE_MODE === "live" ? process.env.STRIPE_LIVE_PAYMENTS_ENABLED !== "true" : process.env.STRIPE_CHECKOUT_TEST_ENABLED !== "true") || (process.env.VERCEL_ENV !== "production" && process.env.VERCEL_ENV !== "preview")) return NextResponse.json({ error: "CHECKOUT_NOT_READY" }, { status: 503 });
+  let stage = "identity";
+  let mutationKey: string | undefined;
+  let redis: ReturnType<typeof redisCommandFromEnv> | undefined;
+  let outcomeCertain = true;
+  const owner = crypto.randomUUID();
+  try {
+    const identity = await googleIdentity(req);
+    const body = await req.json();
+    if (typeof body.organization_id !== "string") return NextResponse.json({ error: "INVALID_ORGANIZATION" }, { status: 400 });
+    const allowedTestOrganizations = new Set((process.env.STRIPE_TEST_ORGANIZATION_IDS || "")
+      .split(",").map(value => value.trim()).filter(Boolean));
+    const {mode,live} = stripeMode();
+    const publicDemo = process.env.PUBLIC_TEST_DEMO_ENABLED === "true";
+    if (!live && !publicDemo && !allowedTestOrganizations.has(body.organization_id)) return NextResponse.json({ error: "TEST_ORGANIZATION_NOT_ALLOWED" }, { status: 403 });
+    stage = "base44";
+    const result = await base44Call("resolveUserOrganizations", { google_id_token: identity.idToken });
+    if (result.user?.google_sub !== identity.sub || !Array.isArray(result.organizations)) throw Error("BASE44_UNAVAILABLE");
+    const org = result.organizations.find((o: any) => o.id === body.organization_id && ["owner", "admin"].includes(o.role));
+    if (!live && publicDemo && org?.billing_demo_enabled !== true) return NextResponse.json({ error: "DEMO_ORGANIZATION_REQUIRED" }, { status: 403 });
+    if (!org) return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+    // Strictly permit first subscriptions only. Recovery/resubscription needs a separate flow.
+    if (org.subscription_status !== "none" || org.can_checkout !== true) return NextResponse.json({ error: "ALREADY_SUBSCRIBED" }, { status: 409 });
+    stage = "configuration";
+    const key = live ? process.env.STRIPE_LIVE_SECRET_KEY : process.env.STRIPE_SECRET_KEY;
+    const plan = body.plan;
+    if (plan !== "owner_op" && plan !== "fleet") return NextResponse.json({ error: "PLAN_REQUIRED" }, { status: 400 });
+    const priceId = live ? (plan === "owner_op" ? process.env.STRIPE_LIVE_PRICE_OWNER_OP : process.env.STRIPE_LIVE_PRICE_FLEET) : (plan === "owner_op" ? process.env.STRIPE_PRICE_OWNER_OP : process.env.STRIPE_PRICE_FLEET);
+    if (!key || !priceId || !process.env.NEXTAUTH_URL) throw Error("CONFIGURATION_REQUIRED");
+    if (live) {
+      stage = "live_backend_preflight";
+      const serverSecret = process.env.TRUCKY_SERVER_SECRET;
+      if (!serverSecret) throw Error("CONFIGURATION_REQUIRED");
+      const ready = await fetch("https://trucky-17a283d5.base44.app/api/functions/checkLiveBillingConfiguration", {
+        method:"POST", redirect:"error", signal:AbortSignal.timeout(15000),
+        headers:{Authorization:`Bearer ${serverSecret}`,"Content-Type":"application/json"},
+        body:JSON.stringify({prices:[process.env.STRIPE_LIVE_PRICE_OWNER_OP,process.env.STRIPE_LIVE_PRICE_FLEET]}),
+      });
+      if (!ready.ok || (await ready.json()).code !== "LIVE_CONFIGURATION_VALID") throw Error("LIVE_BACKEND_NOT_READY");
+    }
+    const stripe = new Stripe(key);
+    stage = "stripe_price";
+    const price = await stripe.prices.retrieve(priceId);
+    if (!price.active || price.livemode !== live || price.type !== "recurring" || price.recurring?.interval !== "month" || price.recurring.interval_count !== 1 || price.unit_amount === null || price.billing_scheme !== "per_unit") throw Error("INVALID_PRICE");
+    stage = "redis_reserve";
+    const command = redisCommandFromEnv();
+    redis = command;
+    const candidateMutationKey = `trucky:checkout:${mode}:mutation:${org.id}`;
+    if (await command(["SET", candidateMutationKey, owner, "NX"]) !== "OK") throw Error("CHECKOUT_LOCKED");
+    mutationKey = candidateMutationKey;
+    const coordinator = createCheckoutCoordinator(command, `trucky:checkout:${mode}:v1`, live);
+    let attempt = await coordinator.reserve(org.id, identity.sub);
+    stage = "stripe_previous_session";
+    // All checkout creation/replacement requests share the persistent mutation lock.
+    // Retain it on uncertain Stripe/Redis writes rather than allowing overlap.
+    outcomeCertain = false;
+    attempt = await replaceUnconfirmedPlan(stripe, coordinator, org.id, attempt, priceId, identity.sub, live);
+    if (Date.now() - attempt.createdAt > 20 * 60 * 60 * 1000) throw Error("RECONCILIATION_REQUIRED");
+    const origin = new URL(process.env.NEXTAUTH_URL).origin;
+    stage = "redis_payload";
+    const payload = await canonicalCheckoutPayload(command, { ...attempt, mode }, {
+      mode: "subscription",
+      client_reference_id: org.id,
+      line_items: [{ price: priceId, quantity: 1 }],
+      payment_method_collection: "always",
+      billing_address_collection: "required",
+      tax_id_collection: { enabled: true },
+      custom_fields: [{ key: "company_name", label: { type: "custom", custom: "Nombre de la empresa" }, type: "text", optional: false, text: { maximum_length: 120 } }],
+      metadata: { org_id: org.id, reservation_id: attempt.id },
+      subscription_data: { metadata: { org_id: org.id, reservation_id: attempt.id } },
+      expires_at: Math.floor(attempt.createdAt / 1000) + 1800,
+      success_url: `${origin}/subscribe?checkout=returned`,
+      cancel_url: `${origin}/#pricing`,
+    });
+    // Cached attempts retain immutable Stripe parameters. Never silently reuse a
+    // free-trial request after switching paid plans to immediate billing.
+    if (payload.subscription_data?.trial_period_days || payload.subscription_data?.trial_end) throw Error("LEGACY_TRIAL_CHECKOUT_REQUIRES_REVIEW");
+    if (payload.line_items?.[0]?.price !== priceId) throw Error("EXISTING_CHECKOUT_DIFFERENT_PLAN");
+    let supportedPayload = payload;
+    let idempotencyKey = attempt.idempotencyKey;
+    if (Object.hasOwn(payload, "payment_method_types") && !attempt.sessionId) {
+      stage = "audited_recovery";
+      const recovery = await recoverRejectedPayload(command, attempt, payload,
+        process.env.STRIPE_AUDITED_REJECTED_ATTEMPT_ID);
+      supportedPayload = recovery.payload;
+      idempotencyKey = recovery.idempotencyKey;
+    }
+    stage = "stripe_session";
+    const session = attempt.sessionId
+      ? await stripe.checkout.sessions.retrieve(attempt.sessionId)
+      : await stripe.checkout.sessions.create(supportedPayload, { idempotencyKey });
+    if (session.livemode !== live || session.client_reference_id !== org.id || session.metadata?.reservation_id !== attempt.id) throw Error("STRIPE_SESSION_MISMATCH");
+    stage = "redis_attach";
+    await coordinator.attach(org.id, attempt.id, session.id);
+    if (session.status !== "open" || !session.url) throw Error("RECONCILIATION_REQUIRED");
+    outcomeCertain = true;
+    return NextResponse.json({ url: session.url }, { headers: { "Cache-Control": "no-store" } });
+  } catch (error) {
+    const code = error instanceof Error ? error.message : "CHECKOUT_UNAVAILABLE";
+    // Whitelist diagnostics only: never log SDK messages, URLs, tokens or payloads.
+    const sdk = error as { type?: string; code?: string; statusCode?: number; requestId?: string };
+    const safe = (value: unknown) => typeof value === "string" && /^[a-zA-Z0-9_-]{1,100}$/.test(value) ? value : undefined;
+    console.error("checkout_failure", { stage, category: safe(code), type: safe(sdk.type), code: safe(sdk.code), status: typeof sdk.statusCode === "number" ? sdk.statusCode : undefined, stripeRequestId: safe(sdk.requestId) });
+    if (["ALREADY_SUBSCRIBED", "EXISTING_CHECKOUT_DIFFERENT_PLAN"].includes(code)) outcomeCertain = true;
+    const allowed = ["LEGACY_TRIAL_CHECKOUT_REQUIRES_REVIEW", "ALREADY_SUBSCRIBED", "EXISTING_CHECKOUT_DIFFERENT_PLAN", "SIGN_IN_REQUIRED", "CHECKOUT_LOCKED", "RECONCILIATION_REQUIRED"];
+    return NextResponse.json({ error: allowed.includes(code) ? code : "CHECKOUT_UNAVAILABLE" }, { status: code === "SIGN_IN_REQUIRED" ? 401 : allowed.includes(code) ? 409 : 503 });
+  } finally {
+    if (mutationKey && redis && outcomeCertain) {
+      try { await redis(["EVAL", "if redis.call('GET',KEYS[1]) == ARGV[1] then return redis.call('DEL',KEYS[1]) else return 0 end", "1", mutationKey, owner]); } catch {}
+    }
+  }
+}

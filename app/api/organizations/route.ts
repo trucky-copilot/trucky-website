@@ -1,0 +1,38 @@
+import { getToken } from "next-auth/jwt";
+import { NextRequest, NextResponse } from "next/server";
+import { base44Call, googleIdentity, sameOrigin } from "@/lib/server/base44";
+export const dynamic = "force-dynamic";
+function failure(error: unknown) {
+  const code = error instanceof Error ? error.message : "BASE44_UNAVAILABLE";
+  console.error("organization_request_failed", { category: ["SIGN_IN_REQUIRED", "INTEGRATION_PENDING", "BASE44_UNAVAILABLE", "BASE44_AUTHENTICATION_FAILED"].includes(code) ? code : "UNEXPECTED_BACKEND_RESPONSE" });
+  const known = ["SIGN_IN_REQUIRED", "INTEGRATION_PENDING", "BASE44_UNAVAILABLE", "BASE44_AUTHENTICATION_FAILED"].includes(code) ? code : "BASE44_UNAVAILABLE";
+  return NextResponse.json({ error: known }, { status: known === "SIGN_IN_REQUIRED" ? 401 : 503, headers: { "Cache-Control": "no-store" } });
+}
+export async function GET(req: NextRequest) {
+  try {
+    const identity = await googleIdentity(req);
+    const result = await base44Call("resolveUserOrganizations", { google_id_token: identity.idToken });
+    if (result.user?.google_sub !== identity.sub || !Array.isArray(result.organizations)) throw Error("BASE44_UNAVAILABLE");
+    const organizations = result.organizations.map((org: any) => {
+      if (typeof org.id !== "string" || typeof org.name !== "string" || !["owner", "admin"].includes(org.role)) throw Error("BASE44_UNAVAILABLE");
+      return { id: org.id, name: org.name, subscription_status: org.subscription_status, billing_demo_enabled: org.billing_demo_enabled === true };
+    });
+    return NextResponse.json({ organizations }, { headers: { "Cache-Control": "no-store" } });
+  } catch (error) { return failure(error); }
+}
+export async function POST(req: NextRequest) {
+  if (!sameOrigin(req)) return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+  try {
+    const identity = await googleIdentity(req);
+    const body = await req.json();
+    const session = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    if (body.prepare_checkout === true) {
+      // Provisional server-derived workspace; never used to claim existing companies.
+      body.company_name = `Cuenta ${session?.name || "Trucky"}`.slice(0, 120);
+    }
+    if (typeof body.company_name !== "string" || !body.company_name.trim() || body.company_name.length > 120) return NextResponse.json({ error: "INVALID_COMPANY_NAME" }, { status: 400 });
+    const result = await base44Call("createOrganizationForUser", { google_id_token: identity.idToken, company_name: body.company_name.trim() });
+    if (typeof result.org_id !== "string" || result.role !== "owner") throw Error("BASE44_UNAVAILABLE");
+    return NextResponse.json({ organization: { id: result.org_id, name: result.name } }, { headers: { "Cache-Control": "no-store" } });
+  } catch (error) { return failure(error); }
+}
