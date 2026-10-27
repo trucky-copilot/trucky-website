@@ -1,3 +1,4 @@
+import { billingLinkPilotAllowed } from '@/lib/server/billing-link-pilot.mjs';
 import { randomBytes, createHash } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
@@ -10,6 +11,7 @@ export async function POST(req:NextRequest){
   const identity=await googleIdentity(req);
   const session=await getToken({req,secret:process.env.NEXTAUTH_SECRET});
   const {organization_id}=await req.json();
+  if(!billingLinkPilotAllowed(identity.sub,organization_id))return NextResponse.json({code:'LINK_PILOT_ONLY'},{status:403});
   const resolved=await base44Call('resolveUserOrganizations',{google_id_token:identity.idToken});
   const org=resolved.organizations?.find((o:any)=>o.id===organization_id&&['owner','admin'].includes(o.role));
   if(!org||resolved.user?.google_sub!==identity.sub||!session?.email)return NextResponse.json({code:'FORBIDDEN'},{status:403});
