@@ -9,6 +9,7 @@ import {
   WhoItsFor,
   Solution,
   HowItWorks,
+  Academies,
   Pricing,
   FAQ,
   FinalCTA,
@@ -35,8 +36,6 @@ export default function HomePage() {
       | "dark"
       | null;
     if (savedLang) setLang(savedLang);
-    else if (typeof navigator !== "undefined" && !navigator.language.startsWith("es"))
-      setLang("en");
     if (savedTheme) setTheme(savedTheme);
   }, []);
 
@@ -68,7 +67,8 @@ export default function HomePage() {
         <Solution lang={lang} />
         <HowItWorks lang={lang} />
 
-        <Pricing lang={lang} onOpenDemo={() => {}} />
+        <Academies lang={lang} onOpenDemo={() => window.location.assign(`/demo?lang=${lang}`)} />
+        <Pricing lang={lang} />
         <FAQ lang={lang} />
         <FinalCTA lang={lang} onOpenDemo={() => window.location.assign(`/demo?lang=${lang}`)} />
       </main>

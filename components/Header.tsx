@@ -2,7 +2,6 @@
 
 
 import { AccountButton } from "./AccountButton";
-import { getSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { Icon, Logo } from "./Icons";
 import { I18N, type Lang } from "@/lib/i18n";
@@ -16,15 +15,7 @@ type Props = {
 };
 
 export function Header({ lang, setLang, theme, setTheme, onOpenDemo }: Props) {
-  const [signedIn, setSignedIn] = useState(false);
-  useEffect(() => {
-    const refresh = () => { getSession().then(s => setSignedIn(!!s?.user)).catch(() => setSignedIn(false)); };
-    refresh(); window.addEventListener("focus", refresh);
-    const timer = setInterval(refresh, 15000);
-    return () => { window.removeEventListener("focus", refresh); clearInterval(timer); };
-  }, []);
   const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const t = I18N[lang];
 
   useEffect(() => {
@@ -51,6 +42,9 @@ export function Header({ lang, setLang, theme, setTheme, onOpenDemo }: Props) {
           </a>
           <a href="#how" className="link">
             {t.nav.how}
+          </a>
+          <a href="#academias" className="link">
+            {t.nav.academies}
           </a>
           <a href="#pricing" className="link">
             {t.nav.pricing}
@@ -83,9 +77,9 @@ export function Header({ lang, setLang, theme, setTheme, onOpenDemo }: Props) {
           >
             <Icon name={isDark ? "sun" : "moon"} width={20} height={20} />
           </button>
-          {signedIn && <button className="btn btn-primary" onClick={onOpenDemo}>
-            {lang === "es" ? "Probar demo" : "Try demo"}
-          </button>}
+          <button className="btn btn-primary" onClick={onOpenDemo}>
+            {t.nav.cta}
+          </button>
         </div>
       </div>
     </nav>

@@ -28,9 +28,6 @@ export function Problem({ lang }: { lang: Lang }) {
               </span>
               {t.title_3}
             </h2>
-            <p style={{ fontSize: "1.1rem", opacity: 0.85, marginTop: 20 }}>
-              {t.subtitle}
-            </p>
             <ul className="problem-list">
               {t.list.map((item, i) => (
                 <li key={i}>
@@ -39,6 +36,9 @@ export function Problem({ lang }: { lang: Lang }) {
                 </li>
               ))}
             </ul>
+            <p style={{ fontSize: "1.1rem", opacity: 0.85, marginTop: 20 }}>
+              {t.closing}
+            </p>
           </div>
           <div className="problem-visual">
             <img
@@ -79,14 +79,7 @@ export function WhoItsFor({ lang }: { lang: Lang }) {
               </div>
               <div className="who-photo-body">
                 <p>{c.desc}</p>
-                <ul className="who-bullets">
-                  {c.bullets.map((b, j) => (
-                    <li key={j}>
-                      <Icon name="check" width={14} height={14} style={{ color: "var(--brand)", flexShrink: 0 }} />
-                      {b}
-                    </li>
-                  ))}
-                </ul>
+                {c.link && <a className="link" href="#academias">{c.link}</a>}
               </div>
             </div>
           ))}
@@ -118,14 +111,6 @@ export function Solution({ lang }: { lang: Lang }) {
               </div>
               <h3 className="h3">{f.title}</h3>
               <p>{f.desc}</p>
-              {f.example && (
-                <div className="feature-example">
-                  <span className="feature-example-label">
-                    {lang === "es" ? "Ejemplo real" : "Real example"}
-                  </span>
-                  <span>{f.example}</span>
-                </div>
-              )}
             </div>
           ))}
         </div>
@@ -153,7 +138,6 @@ export function HowItWorks({ lang }: { lang: Lang }) {
               <div className="step-num">0{i + 1}</div>
               <h3 className="h3">{s.title}</h3>
               <p>{s.desc}</p>
-              {s.detail && <div className="step-detail">{s.detail}</div>}
             </div>
           ))}
         </div>
@@ -162,7 +146,26 @@ export function HowItWorks({ lang }: { lang: Lang }) {
   );
 }
 
-export function Pricing({ lang, onOpenDemo }: { lang: Lang; onOpenDemo: () => void }) {
+export function Academies({ lang, onOpenDemo }: { lang: Lang; onOpenDemo: () => void }) {
+  const t = I18N[lang].academies;
+  return (
+    <section id="academias">
+      <div className="container-tr">
+        <div className="section-header-center">
+          <div className="section-tag">{t.tag}</div>
+          <h2 className="h2" style={{ marginTop: 20 }}>{t.title}</h2>
+          <p className="section-sub">{t.text}</p>
+          <button className="btn btn-primary btn-lg" onClick={onOpenDemo}>
+            {t.cta}
+            <Icon name="arrowRight" width={18} height={18} />
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function Pricing({ lang }: { lang: Lang }) {
   const t = I18N[lang].pricing;
   return (
     <section id="pricing">
@@ -194,7 +197,7 @@ export function Pricing({ lang, onOpenDemo }: { lang: Lang; onOpenDemo: () => vo
                   </li>
                 ))}
               </ul>
-              {i < 2 ? <PlanCheckoutButton plan={i === 0 ? "owner_op" : "fleet"} lang={lang} label={p.cta} className={`btn ${p.highlight ? "btn-primary" : "btn-ghost"} btn-block`} /> : <a className="btn btn-ghost btn-block" href="mailto:trucky.road.copilot@gmail.com">{p.cta}</a>}
+              <PlanCheckoutButton plan={i === 0 ? "owner_op" : "fleet"} lang={lang} label={p.cta} className={`btn ${p.highlight ? "btn-primary" : "btn-ghost"} btn-block`} />
             </div>
           ))}
         </div>

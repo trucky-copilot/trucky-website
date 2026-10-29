@@ -1,0 +1,382 @@
+{
+  "es": {
+    "nav": {
+      "product": "Producto",
+      "how": "Cómo funciona",
+      "academies": "Para academias",
+      "pricing": "Precios",
+      "faq": "Preguntas",
+      "cta": "Agendar demo"
+    },
+    "hero": {
+      "title_1": "Toma más camiones ",
+      "title_2": "sin trabajar más horas.",
+      "title_3": "",
+      "subtitle": "Trucky es la plataforma para dispatchers: revisa cada rate confirmation, te dice si una carga le paga a cada camión y lleva lo que genera cada empresa. En español y en inglés.",
+      "cta_primary": "Agendar demo de 15 min",
+      "cta_secondary": "Ver cómo funciona",
+      "microtrust": "Hecho para dispatchers que manejan de 1 a 10 camiones."
+    },
+    "problem": {
+      "tag": "El problema",
+      "title_1": "El broker quiere que firmes ya. ",
+      "title_2": "Tú tienes tres empresas abiertas y un Excel.",
+      "title_3": "",
+      "list": [
+        "Un rate que no coincide con lo que cotizaste.",
+        "Detention y accessorials que faltan o están mal calculados.",
+        "Fechas de pickup o delivery que cambiaron.",
+        "Términos de pago escondidos, como Net 45 o más.",
+        "Cuando el dueño pregunta cuánto le generaste, la respuesta está en un Excel."
+      ],
+      "closing": "Una cláusula que nadie leyó le costó USD 2.000 de multa a un conductor con el que hablamos."
+    },
+    "who": {
+      "tag": "Para quién es",
+      "title_1": "Para el dispatcher ",
+      "title_2": "que maneja varias empresas.",
+      "title_3": "",
+      "cards": [
+        {
+          "role": "Dispatcher que empieza (1 a 4 camiones)",
+          "desc": "Un sistema listo desde tu primer carrier, sin armar nada en Excel.",
+          "link": ""
+        },
+        {
+          "role": "Dispatcher con experiencia (5 a 10 camiones)",
+          "desc": "Más camiones por persona, sin cotizar nunca por debajo del costo de cada uno.",
+          "link": ""
+        },
+        {
+          "role": "Academias de dispatch",
+          "desc": "Tus alumnos practican con cargas y contratos reales.",
+          "link": "Conoce Trucky Academy"
+        }
+      ]
+    },
+    "solution": {
+      "tag": "La solución",
+      "title_1": "Tres cosas que cambian ",
+      "title_2": "lo que ganas por carga.",
+      "title_3": "",
+      "subtitle": "La IA no decide por ti. Tú tienes la última palabra.",
+      "features": [
+        {
+          "title": "Revisa cada contrato",
+          "desc": "Lee la rate confirmation y te marca cobros escondidos, accessorials que faltan y fechas mal puestas antes de firmar.",
+          "icon": "map"
+        },
+        {
+          "title": "Precio por camión",
+          "desc": "Calcula el RPM real (millas cargadas más dead head) contra el costo por milla de ese camión. Ejemplo: USD 2.850 por 1.028 millas son USD 2,77 por milla, debajo de una meta de USD 3,00.",
+          "icon": "gauge"
+        },
+        {
+          "title": "Cada empresa en su lugar",
+          "desc": "Cada empresa que manejas con su propio copiloto, sus camiones, conductores y brokers, y el registro de lo que generó cada camión.",
+          "icon": "shield"
+        }
+      ]
+    },
+    "how": {
+      "tag": "En 3 pasos",
+      "title_1": "Así de ",
+      "title_2": "simple.",
+      "title_3": "",
+      "steps": [
+        {
+          "title": "Configura cada camión una vez",
+          "desc": "Pon su costo por milla y tu meta."
+        },
+        {
+          "title": "Sube la rate con o pregunta por una carga",
+          "desc": "PDF, foto o captura de pantalla, o con tus palabras: ‘¿me conviene esta carga?’"
+        },
+        {
+          "title": "Recibe el veredicto",
+          "desc": "Verde, amarillo o rojo, con los números de ese camión, antes de reservar."
+        }
+      ]
+    },
+    "academies": {
+      "tag": "Trucky Academy",
+      "title": "¿Tienes una academia de dispatch?",
+      "text": "Enseña con Trucky en tus clases, sin costo para la academia. Tus alumnos practican con cargas y contratos reales y empiezan con 1 mes gratis.",
+      "cta": "Quiero Trucky para mi academia"
+    },
+    "pricing": {
+      "tag": "Precios",
+      "title_1": "Un plan por dispatcher, ",
+      "title_2": "según cuántos camiones manejas.",
+      "title_3": "",
+      "subtitle": "Precio de lanzamiento.",
+      "plans": [
+        {
+          "name": "Inicial",
+          "price": "US$29",
+          "period": "/ mes",
+          "desc": "De 1 a 4 camiones",
+          "bullets": [
+            "Copiloto de IA por cada empresa",
+            "Verificador de rate confirmations",
+            "Calculadora de costo por milla",
+            "Registro de cargas por camión y por empresa",
+            "En español y en inglés"
+          ],
+          "cta": "Empezar",
+          "highlight": false,
+          "badge": ""
+        },
+        {
+          "name": "Crecimiento",
+          "price": "US$99",
+          "period": "/ mes",
+          "desc": "De 5 a 10 camiones",
+          "bullets": [
+            "Copiloto de IA por cada empresa",
+            "Verificador de rate confirmations",
+            "Calculadora de costo por milla",
+            "Registro de cargas por camión y por empresa",
+            "En español y en inglés"
+          ],
+          "cta": "Empezar",
+          "highlight": true,
+          "badge": "Más popular"
+        }
+      ],
+      "free_trial": "1 mes gratis. Cancela cuando quieras."
+    },
+    "faq": {
+      "tag": "Preguntas frecuentes",
+      "title": "¿Aún tienes dudas?",
+      "subtitle": "Si no está aquí, escríbenos por WhatsApp.",
+      "items": [
+        {
+          "q": "¿Qué documentos puedo revisar?",
+          "a": "Rate confirmations en PDF, foto o captura de pantalla."
+        },
+        {
+          "q": "¿Sirve si estoy empezando como dispatcher?",
+          "a": "Sí. Trucky está pensado para que tengas tu sistema listo desde el primer carrier, sin armarlo en Excel."
+        },
+        {
+          "q": "¿Se conecta con mi TMS?",
+          "a": "Hoy Trucky funciona por sí solo. Las integraciones las vamos sumando según lo que nos pidan los dispatchers."
+        },
+        {
+          "q": "¿Funciona en español?",
+          "a": "Sí. Toda la plataforma funciona en español y en inglés."
+        },
+        {
+          "q": "¿Qué pasa con mis datos?",
+          "a": "Tus datos son tuyos. En la demo te explicamos cómo los protegemos."
+        },
+        {
+          "q": "¿Puedo cancelar cuando quiera?",
+          "a": "Sí, sin contratos."
+        },
+        {
+          "q": "¿Cómo agendo una demo?",
+          "a": "Con el botón ‘Agendar demo’ o por WhatsApp. Son 15 minutos, con una carga tuya."
+        }
+      ]
+    },
+    "cta": {
+      "title_1": "Pruébalo con ",
+      "title_2": "una carga tuya.",
+      "title_3": "",
+      "subtitle": "15 minutos. Tú pones la carga y nosotros te mostramos la respuesta.",
+      "primary": "Agendar demo"
+    }
+  },
+  "en": {
+    "nav": {
+      "product": "Product",
+      "how": "How it works",
+      "academies": "For academies",
+      "pricing": "Pricing",
+      "faq": "FAQ",
+      "cta": "Book a demo"
+    },
+    "hero": {
+      "title_1": "Take on more trucks ",
+      "title_2": "without working more hours.",
+      "title_3": "",
+      "subtitle": "Trucky is the platform for truck dispatchers: it checks every rate confirmation, tells you if a load pays for each truck, and tracks what every company earns. In English and Spanish.",
+      "cta_primary": "Book a 15-min demo",
+      "cta_secondary": "See how it works",
+      "microtrust": "Built for dispatchers who run 1 to 10 trucks."
+    },
+    "problem": {
+      "tag": "The problem",
+      "title_1": "The broker wants you to sign now. ",
+      "title_2": "You have three companies open and a spreadsheet.",
+      "title_3": "",
+      "list": [
+        "A rate that doesn’t match what you quoted.",
+        "Detention and accessorials that are missing or miscalculated.",
+        "Pickup or delivery dates that changed.",
+        "Hidden payment terms, like Net 45 or longer.",
+        "When an owner asks how much you made them, the answer lives in a spreadsheet."
+      ],
+      "closing": "One clause nobody read cost a driver we spoke with a $2,000 fine."
+    },
+    "who": {
+      "tag": "Who it’s for",
+      "title_1": "For dispatchers ",
+      "title_2": "who run several companies.",
+      "title_3": "",
+      "cards": [
+        {
+          "role": "New dispatchers (1 to 4 trucks)",
+          "desc": "A ready-made system from your first carrier, no spreadsheet to build.",
+          "link": ""
+        },
+        {
+          "role": "Experienced dispatchers (5 to 10 trucks)",
+          "desc": "More trucks per person, and never a quote below what each truck costs to run.",
+          "link": ""
+        },
+        {
+          "role": "Dispatcher academies",
+          "desc": "Your students practice with real loads and contracts.",
+          "link": "Meet Trucky Academy"
+        }
+      ]
+    },
+    "solution": {
+      "tag": "The solution",
+      "title_1": "Three things that change ",
+      "title_2": "what you make per load.",
+      "title_3": "",
+      "subtitle": "The AI never decides for you. You have the final say.",
+      "features": [
+        {
+          "title": "Checks every contract",
+          "desc": "Reads the rate confirmation and flags hidden fees, missing accessorials and wrong dates before you sign.",
+          "icon": "map"
+        },
+        {
+          "title": "Prices by truck",
+          "desc": "Calculates the real RPM (loaded miles plus dead head) against that truck’s cost per mile. Example: $2,850 over 1,028 miles is $2.77 a mile, below a $3.00 target.",
+          "icon": "gauge"
+        },
+        {
+          "title": "Every company in one place",
+          "desc": "Each company you run gets its own co-pilot, trucks, drivers and brokers, plus a record of what every truck earned.",
+          "icon": "shield"
+        }
+      ]
+    },
+    "how": {
+      "tag": "In 3 steps",
+      "title_1": "It’s that ",
+      "title_2": "simple.",
+      "title_3": "",
+      "steps": [
+        {
+          "title": "Set up each truck once",
+          "desc": "Add its cost per mile and your target."
+        },
+        {
+          "title": "Upload the rate con or ask about a load",
+          "desc": "PDF, photo or screenshot, or in your own words: ‘Is this load worth it?’"
+        },
+        {
+          "title": "Get the verdict",
+          "desc": "Green, yellow or red, based on that truck’s numbers, before you book."
+        }
+      ]
+    },
+    "academies": {
+      "tag": "Trucky Academy",
+      "title": "Run a dispatcher academy?",
+      "text": "Teach with Trucky in your classes, at no cost to your academy. Your students practice with real loads and contracts, and start with 1 month free.",
+      "cta": "Bring Trucky to my academy"
+    },
+    "pricing": {
+      "tag": "Pricing",
+      "title_1": "One plan per dispatcher, ",
+      "title_2": "based on how many trucks you run.",
+      "title_3": "",
+      "subtitle": "Launch pricing.",
+      "plans": [
+        {
+          "name": "Starter",
+          "price": "$29",
+          "period": "/ month",
+          "desc": "1 to 4 trucks",
+          "bullets": [
+            "An AI co-pilot for every company",
+            "Rate confirmation checker",
+            "Cost-per-mile calculator",
+            "Load records by truck and by company",
+            "English and Spanish"
+          ],
+          "cta": "Get started",
+          "highlight": false,
+          "badge": ""
+        },
+        {
+          "name": "Growth",
+          "price": "$99",
+          "period": "/ month",
+          "desc": "5 to 10 trucks",
+          "bullets": [
+            "An AI co-pilot for every company",
+            "Rate confirmation checker",
+            "Cost-per-mile calculator",
+            "Load records by truck and by company",
+            "English and Spanish"
+          ],
+          "cta": "Get started",
+          "highlight": true,
+          "badge": "Most popular"
+        }
+      ],
+      "free_trial": "1 month free. Cancel anytime."
+    },
+    "faq": {
+      "tag": "FAQ",
+      "title": "Still have questions?",
+      "subtitle": "If it’s not here, message us on WhatsApp.",
+      "items": [
+        {
+          "q": "What documents can I check?",
+          "a": "Rate confirmations as a PDF, photo or screenshot."
+        },
+        {
+          "q": "Does it work if I’m a new dispatcher?",
+          "a": "Yes. Trucky gives you a ready-made system from your first carrier, no spreadsheet to build."
+        },
+        {
+          "q": "Does it connect to my TMS?",
+          "a": "Today Trucky works on its own. We add integrations based on what dispatchers ask for."
+        },
+        {
+          "q": "Is it available in Spanish?",
+          "a": "Yes. The whole platform works in English and Spanish."
+        },
+        {
+          "q": "What happens to my data?",
+          "a": "Your data is yours. We’ll walk you through how we protect it in the demo."
+        },
+        {
+          "q": "Can I cancel anytime?",
+          "a": "Yes, no contracts."
+        },
+        {
+          "q": "How do I book a demo?",
+          "a": "Use the ‘Book a demo’ button or WhatsApp. It takes 15 minutes, with one of your own loads."
+        }
+      ]
+    },
+    "cta": {
+      "title_1": "Try it with ",
+      "title_2": "one of your own loads.",
+      "title_3": "",
+      "subtitle": "15 minutes. You bring the load, we show you the answer.",
+      "primary": "Book a demo"
+    }
+  }
+}
