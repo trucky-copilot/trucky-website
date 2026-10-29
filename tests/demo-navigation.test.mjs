@@ -8,8 +8,8 @@ test('homepage demo buttons preserve language and avoid booking modal', () => {
  const header=readFileSync('components/Header.tsx','utf8');
  assert.ok(header.includes('<AccountButton'));
  assert.ok(home.includes('window.location.assign(`/demo?lang=${lang}`)'));
- assert.ok(header.includes('{signedIn &&'));
- assert.ok(header.includes('Probar demo'));
+ assert.ok(!header.includes('{signedIn &&'));
+ assert.ok(header.includes('{t.nav.cta}'));
 });
 test('checkout return waits for server subscription confirmation', () => {
  const source=readFileSync('app/subscribe/page.tsx','utf8');

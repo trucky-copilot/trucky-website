@@ -19,244 +19,196 @@ export const I18N = {
     nav: {
       product: "Producto",
       how: "Cómo funciona",
-      demo: "Demo",
+      academies: "Para academias",
       pricing: "Precios",
       faq: "Preguntas",
-      cta: "Agendar Demo",
+      cta: "Agendar demo"
     },
     hero: {
-      tag: "Verificador de Documentos · Early Access",
-      title_1: "Deja de leer ",
-      title_2: "Rate Confirmations",
-      title_3: " línea por línea. ",
-      title_4: "Revisa solo lo que importa",
-      title_5: ".",
-      subtitle:
-        "Sube el RC. En 30 segundos Trucky te dice si la tarifa cuadra, si el dead head está bien pagado, y si el broker es de fiar. Tú firmas.",
-      cta_primary: "Probar con un RC de ejemplo",
+      title_1: "Toma más camiones ",
+      title_2: "sin trabajar más horas.",
+      title_3: "",
+      subtitle: "Trucky es la plataforma para dispatchers: revisa cada rate confirmation, te dice si una carga le paga a cada camión y lleva lo que genera cada empresa. En español y en inglés.",
+      cta_primary: "Agendar demo de 15 min",
       cta_secondary: "Ver cómo funciona",
-      badge: "IA revisando en vivo",
-      microtrust_title: "En beta con truckers reales",
-      microtrust_sub: "Owner-ops y flotas pequeñas · US + Colombia",
-      stats: [
-        { num: "~30s", label: "Por RC procesado" },
-        { num: "15+", label: "Campos verificados" },
-        { num: "24/7", label: "Sin turno ni descanso" },
-        { num: "ES · EN", label: "Documentos bilingües" },
-      ],
-      stats_footnote:
-        "Métricas medidas en pruebas internas con clientes early access. Tus resultados pueden variar según flota y broker.",
+      microtrust: "Hecho para dispatchers que manejan de 1 a 10 camiones."
     },
     problem: {
       tag: "El problema",
-      title_1: "Hoy los revisas ",
-      title_2: "a mano",
-      title_3:
-        ", muchas veces manejando, atendiendo otra llamada, o corriendo entre cargas.",
-      subtitle:
-        "Un Rate Confirmation con un error no avisa. Simplemente te cuesta dinero un mes después, cuando ya es tarde para reclamarlo.",
+      title_1: "El broker quiere que firmes ya. ",
+      title_2: "Tú tienes tres empresas abiertas y un Excel.",
+      title_3: "",
       list: [
-        "Tarifas que no coinciden con lo pactado en el quote",
-        "Detention y accessorials calculados mal (o no incluidos)",
-        "Fechas de pickup / delivery cambiadas sin avisar",
-        "Broker o MC number con historial que no conoces",
-        "Términos de pago Net 45+ escondidos en letra pequeña",
-        "Cláusulas de detention que solo activan después de 4 horas",
+        "Un rate que no coincide con lo que cotizaste.",
+        "Detention y accessorials que faltan o están mal calculados.",
+        "Fechas de pickup o delivery que cambiaron.",
+        "Términos de pago escondidos, como Net 45 o más.",
+        "Cuando el dueño pregunta cuánto le generaste, la respuesta está en un Excel."
       ],
+      closing: "Una cláusula que nadie leyó le costó USD 2.000 de multa a un conductor con el que hablamos."
     },
     who: {
       tag: "Para quién es",
-      title_1: "Sirve igual si estás ",
-      title_2: "solo en la ruta",
-      title_3: " o manejando 40 trucks.",
+      title_1: "Para el dispatcher ",
+      title_2: "que maneja varias empresas.",
+      title_3: "",
       cards: [
         {
-          role: "Owner-Operator",
-          desc: "Sube RCs desde el celular en el descanso. Recibe veredicto en 30s antes de firmar.",
-          bullets: [
-            "App móvil + WhatsApp",
-            "Sin instalación",
-            "Pago por RC procesado",
-          ],
+          role: "Dispatcher que empieza (1 a 4 camiones)",
+          desc: "Un sistema listo desde tu primer carrier, sin armar nada en Excel.",
+          link: ""
         },
         {
-          role: "Dispatcher",
-          desc: "Procesa 20-50 RCs por día sin abrir cada PDF. Solo revisas los amarillos y rojos.",
-          bullets: [
-            "Dashboard con cola",
-            "Reglas por driver",
-            "Integración con TMS",
-          ],
+          role: "Dispatcher con experiencia (5 a 10 camiones)",
+          desc: "Más camiones por persona, sin cotizar nunca por debajo del costo de cada uno.",
+          link: ""
         },
         {
-          role: "Fleet Manager",
-          desc: "Monitorea toda la flota en un panel. Ve qué brokers pagan poco y qué lanes rinden más.",
-          bullets: [
-            "Reportes por lane",
-            "Alertas por driver",
-            "API + Webhooks",
-          ],
-        },
-      ],
+          role: "Academias de dispatch",
+          desc: "Tus alumnos practican con cargas y contratos reales.",
+          link: "Conoce Trucky Academy"
+        }
+      ]
     },
     solution: {
       tag: "La solución",
-      title_1: "Tres cosas ",
-      title_2: "simples",
-      title_3: ". Pero cambian por completo lo que ganas por carga.",
-      subtitle:
-        "La IA nunca decide el veredicto. Solo resuelve lo ambiguo y te lo muestra. La última palabra siempre es tuya.",
+      title_1: "Tres cosas que cambian ",
+      title_2: "lo que ganas por carga.",
+      title_3: "",
+      subtitle: "La IA no decide por ti. Tú tienes la última palabra.",
       features: [
         {
-          title: "Dead Head inteligente",
-          desc: "Detecta millas vacías y las compara contra lo que el broker está pagando.",
-          icon: "map",
-          example:
-            "Detecta 186 mi de dead head no pagadas en un RC de Freightop.",
+          title: "Revisa cada contrato",
+          desc: "Lee la rate confirmation y te marca cobros escondidos, accessorials que faltan y fechas mal puestas antes de firmar.",
+          icon: "map"
         },
         {
-          title: "RPM real",
-          desc: "Calcula tu rate por milla real (loaded + dead head) contra tu costo por milla.",
-          icon: "gauge",
-          example:
-            "RC de $2,850 en 1,028 millas totales = $2.77/mi (bajo tu meta de $3.00).",
+          title: "Precio por camión",
+          desc: "Calcula el RPM real (millas cargadas más dead head) contra el costo por milla de ese camión. Ejemplo: USD 2.850 por 1.028 millas son USD 2,77 por milla, debajo de una meta de USD 3,00.",
+          icon: "gauge"
         },
         {
-          title: "Broker verificado",
-          desc: "Cruza el MC number contra FMCSA + historial público de pagos.",
-          icon: "shield",
-          example:
-            '"Broker con 12 complaints en SAFER en los últimos 6 meses."',
-        },
-      ],
+          title: "Cada empresa en su lugar",
+          desc: "Cada empresa que manejas con su propio copiloto, sus camiones, conductores y brokers, y el registro de lo que generó cada camión.",
+          icon: "shield"
+        }
+      ]
     },
     how: {
       tag: "En 3 pasos",
-      title_1: "Sencillo como ",
-      title_2: "reenviar un WhatsApp",
-      title_3: ".",
+      title_1: "Así de ",
+      title_2: "simple.",
+      title_3: "",
       steps: [
         {
-          title: "Sube el Rate Confirmation",
-          desc: "PDF, foto o screenshot. Reenvía el RC desde donde te llegue.",
-          detail: "Formatos: PDF, JPG, PNG, HEIC, e incluso screenshots.",
+          title: "Configura cada camión una vez",
+          desc: "Pon su costo por milla y tu meta."
         },
         {
-          title: "La IA revisa cada campo",
-          desc: "Extrae 15+ campos, los compara contra tu quote original y contra las condiciones típicas del broker.",
-          detail:
-            "OCR + reglas de negocio + LLM contextual. Encriptado end-to-end.",
+          title: "Sube la rate con o pregunta por una carga",
+          desc: "PDF, foto o captura de pantalla, o con tus palabras: ‘¿me conviene esta carga?’"
         },
         {
-          title: "Recibes el veredicto",
-          desc: "Semáforo claro: verde firma tranquilo, amarillo revisa esto, rojo no firmes todavía.",
-          detail:
-            'Ejemplo: "🟡 Rate confirmado dice $2,850 pero tu quote fue $3,100. Diferencia: $250."',
-        },
-      ],
+          title: "Recibe el veredicto",
+          desc: "Verde, amarillo o rojo, con los números de ese camión, antes de reservar."
+        }
+      ]
+    },
+    academies: {
+      tag: "Trucky Academy",
+      title: "¿Tienes una academia de dispatch?",
+      text: "Enseña con Trucky en tus clases, sin costo para la academia. Tus alumnos practican con cargas y contratos reales y empiezan con 1 mes gratis.",
+      cta: "Quiero Trucky para mi academia"
     },
     pricing: {
       tag: "Precios",
-      title_1: "Simple. Sin sorpresas. ",
-      title_2: "Como debe ser",
-      title_3: ".",
-      subtitle:
-        "Estamos en Early Access. Los planes de abajo son la referencia; cerramos el precio final contigo en la demo.",
+      title_1: "Un plan por dispatcher, ",
+      title_2: "según cuántos camiones manejas.",
+      title_3: "",
+      subtitle: "Precio de lanzamiento.",
       plans: [
         {
-          name: "Owner-Op",
+          name: "Inicial",
           price: "US$29",
-          period: "/mes",
-          desc: "Para un solo conductor",
+          period: "/ mes",
+          desc: "De 1 a 4 camiones",
           bullets: [
-            "Hasta 50 RCs / mes",
-            "App + WhatsApp",
-            "Alertas por email",
-            "Soporte por chat",
+            "Copiloto de IA por cada empresa",
+            "Verificador de rate confirmations",
+            "Calculadora de costo por milla",
+            "Registro de cargas por camión y por empresa",
+            "En español y en inglés"
           ],
           cta: "Empezar",
           highlight: false,
+          badge: ""
         },
         {
-          name: "Flota",
+          name: "Crecimiento",
           price: "US$99",
-          period: "/mes",
-          desc: "Hasta 10 conductores",
+          period: "/ mes",
+          desc: "De 5 a 10 camiones",
           bullets: [
-            "RCs ilimitados",
-            "Dashboard multiusuario",
-            "Integración con TMS básica",
-            "Reportes semanales",
-            "Soporte prioritario",
+            "Copiloto de IA por cada empresa",
+            "Verificador de rate confirmations",
+            "Calculadora de costo por milla",
+            "Registro de cargas por camión y por empresa",
+            "En español y en inglés"
           ],
           cta: "Empezar",
           highlight: true,
-          badge: "Más popular",
-        },
-        {
-          name: "Enterprise",
-          price: "A medida",
-          period: "",
-          desc: "Flotas de 10+ trucks",
-          bullets: [
-            "Todo lo del plan Flota",
-            "API + Webhooks",
-            "SLA 99.9%",
-            "Onboarding dedicado",
-            "Contrato personalizado",
-          ],
-          cta: "Contactar",
-          highlight: false,
-        },
+          badge: "Más popular"
+        }
       ],
-      free_trial: "Facturación mensual desde la contratación · Sin mes gratuito en estos planes",
+      free_trial: "1 mes gratis. Cancela cuando quieras."
     },
     faq: {
       tag: "Preguntas frecuentes",
       title: "¿Aún tienes dudas?",
-      subtitle:
-        "Si no está aquí, escríbenos por WhatsApp o pregúntale al copiloto.",
+      subtitle: "Si no está aquí, escríbenos por WhatsApp.",
       items: [
         {
-          q: "¿Qué documentos puedo procesar?",
-          a: "Rate Confirmations es lo principal. También leemos BOLs, PODs, detention receipts y accessorial invoices. PDF, JPG, PNG, HEIC, incluso screenshots de WhatsApp.",
+          q: "¿Qué documentos puedo revisar?",
+          a: "Rate confirmations en PDF, foto o captura de pantalla."
         },
         {
-          q: "¿Se integra con mi TMS?",
-          a: "Sí. Integraciones directas con McLeod, TruckMate y Ascend TMS. Para otros usamos API + Webhooks.",
+          q: "¿Sirve si estoy empezando como dispatcher?",
+          a: "Sí. Trucky está pensado para que tengas tu sistema listo desde el primer carrier, sin armarlo en Excel."
         },
         {
-          q: "¿Es seguro? ¿Qué pasa con mis datos?",
-          a: "Todos los documentos van encriptados en tránsito (TLS 1.3) y en reposo (AES-256). No usamos tus datos para entrenar modelos externos.",
+          q: "¿Se conecta con mi TMS?",
+          a: "Hoy Trucky funciona por sí solo. Las integraciones las vamos sumando según lo que nos pidan los dispatchers."
         },
         {
-          q: "¿Cuánto tarda en procesar un RC?",
-          a: "Promedio 30 segundos. RCs simples: 15-20s. Documentos con múltiples páginas: hasta 60s.",
+          q: "¿Funciona en español?",
+          a: "Sí. Toda la plataforma funciona en español y en inglés."
+        },
+        {
+          q: "¿Qué pasa con mis datos?",
+          a: "Tus datos son tuyos. En la demo te explicamos cómo los protegemos."
         },
         {
           q: "¿Puedo cancelar cuando quiera?",
-          a: "Sí, mes a mes. Sin permanencia.",
+          a: "Sí, sin contratos."
         },
         {
           q: "¿Cómo agendo una demo?",
-          a: 'Click "Agendar Demo" arriba, o escríbenos por WhatsApp al +57 311 553 3824. La demo dura 20 minutos.',
-        },
-      ],
+          a: "Con el botón ‘Agendar demo’ o por WhatsApp. Son 15 minutos, con una carga tuya."
+        }
+      ]
     },
     cta: {
-      title_1: "Prueba el Verificador con ",
-      title_2: "tu propio RC",
-      title_3: ".",
-      subtitle:
-        "Escríbenos y agendamos una demo de 20 minutos. Sin compromiso.",
-      primary: "Agendar Demo",
-      secondary: "Chatear por WhatsApp",
+      title_1: "Pruébalo con ",
+      title_2: "una carga tuya.",
+      title_3: "",
+      subtitle: "15 minutos. Tú pones la carga y nosotros te mostramos la respuesta.",
+      primary: "Agendar demo"
     },
     footer: {
       tagline: "Tu copiloto en la carretera. Menos papeleo, más millas rodando.",
       product: "Producto",
       product_links: [
-        { label: "Verificador", href: "#solution" },
+        { label: "Producto", href: "#solution" },
         { label: "Cómo funciona", href: "#how" },
         { label: "Precios", href: "#pricing" },
       ],
@@ -293,240 +245,196 @@ export const I18N = {
     nav: {
       product: "Product",
       how: "How it works",
-      demo: "Demo",
+      academies: "For academies",
       pricing: "Pricing",
       faq: "FAQ",
-      cta: "Book a demo",
+      cta: "Book a demo"
     },
     hero: {
-      tag: "Document Verifier · Early Access",
-      title_1: "Stop reading ",
-      title_2: "Rate Confirmations",
-      title_3: " line by line. ",
-      title_4: "Only review what matters",
-      title_5: ".",
-      subtitle:
-        "Upload the RC. In 30 seconds Trucky tells you if the rate adds up, if the dead head is paid, and if the broker is legit. You sign.",
-      cta_primary: "Try with a sample RC",
+      title_1: "Take on more trucks ",
+      title_2: "without working more hours.",
+      title_3: "",
+      subtitle: "Trucky is the platform for truck dispatchers: it checks every rate confirmation, tells you if a load pays for each truck, and tracks what every company earns. In English and Spanish.",
+      cta_primary: "Book a 15-min demo",
       cta_secondary: "See how it works",
-      badge: "AI reviewing live",
-      microtrust_title: "In beta with real truckers",
-      microtrust_sub: "Owner-ops and small fleets · US + Colombia",
-      stats: [
-        { num: "~30s", label: "Per RC processed" },
-        { num: "15+", label: "Fields verified" },
-        { num: "24/7", label: "No shifts, no breaks" },
-        { num: "EN · ES", label: "Bilingual documents" },
-      ],
-      stats_footnote:
-        "Metrics from internal early-access testing. Your results may vary based on fleet and broker.",
+      microtrust: "Built for dispatchers who run 1 to 10 trucks."
     },
     problem: {
       tag: "The problem",
-      title_1: "You review them ",
-      title_2: "by hand",
-      title_3: ", often driving, on another call, or juggling loads.",
-      subtitle:
-        "A Rate Confirmation with an error won't warn you. It just costs you money a month later.",
+      title_1: "The broker wants you to sign now. ",
+      title_2: "You have three companies open and a spreadsheet.",
+      title_3: "",
       list: [
-        "Rates that don't match the quote you agreed on",
-        "Detention and accessorials miscalculated (or missing)",
-        "Pickup / delivery dates changed without notice",
-        "Broker or MC number with a history you don't know",
-        "Net 45+ payment terms hidden in fine print",
-        "Detention clauses that only trigger after 4 hours",
+        "A rate that doesn’t match what you quoted.",
+        "Detention and accessorials that are missing or miscalculated.",
+        "Pickup or delivery dates that changed.",
+        "Hidden payment terms, like Net 45 or longer.",
+        "When an owner asks how much you made them, the answer lives in a spreadsheet."
       ],
+      closing: "One clause nobody read cost a driver we spoke with a $2,000 fine."
     },
     who: {
-      tag: "Who it's for",
-      title_1: "Works whether you drive ",
-      title_2: "solo",
-      title_3: " or manage 40 trucks.",
+      tag: "Who it’s for",
+      title_1: "For dispatchers ",
+      title_2: "who run several companies.",
+      title_3: "",
       cards: [
         {
-          role: "Owner-Operator",
-          desc: "Upload RCs from your phone on break. Get a verdict in 30s before signing.",
-          bullets: [
-            "Mobile app + WhatsApp",
-            "No install",
-            "Pay per RC processed",
-          ],
+          role: "New dispatchers (1 to 4 trucks)",
+          desc: "A ready-made system from your first carrier, no spreadsheet to build.",
+          link: ""
         },
         {
-          role: "Dispatcher",
-          desc: "Process 20-50 RCs a day without opening every PDF. You only review the yellows and reds.",
-          bullets: [
-            "Queue dashboard",
-            "Rules per driver",
-            "TMS integration",
-          ],
+          role: "Experienced dispatchers (5 to 10 trucks)",
+          desc: "More trucks per person, and never a quote below what each truck costs to run.",
+          link: ""
         },
         {
-          role: "Fleet Manager",
-          desc: "Monitor the whole fleet in one panel. See which brokers underpay and which lanes yield more.",
-          bullets: [
-            "Per-lane reports",
-            "Per-driver alerts",
-            "API + Webhooks",
-          ],
-        },
-      ],
+          role: "Dispatcher academies",
+          desc: "Your students practice with real loads and contracts.",
+          link: "Meet Trucky Academy"
+        }
+      ]
     },
     solution: {
       tag: "The solution",
-      title_1: "Three ",
-      title_2: "simple things",
-      title_3: ". That completely change what you make per load.",
-      subtitle:
-        "The AI never decides the verdict. It only handles ambiguity and shows it to you.",
+      title_1: "Three things that change ",
+      title_2: "what you make per load.",
+      title_3: "",
+      subtitle: "The AI never decides for you. You have the final say.",
       features: [
         {
-          title: "Smart Dead Head",
-          desc: "Detects empty miles and compares them to what the broker is paying.",
-          icon: "map",
-          example: "Detects 186 unpaid dead head miles on a Freightop RC.",
+          title: "Checks every contract",
+          desc: "Reads the rate confirmation and flags hidden fees, missing accessorials and wrong dates before you sign.",
+          icon: "map"
         },
         {
-          title: "Real RPM",
-          desc: "Calculates your true rate per mile (loaded + dead head) against your cost per mile.",
-          icon: "gauge",
-          example:
-            "RC $2,850 over 1,028 total miles = $2.77/mi (below your $3.00 target).",
+          title: "Prices by truck",
+          desc: "Calculates the real RPM (loaded miles plus dead head) against that truck’s cost per mile. Example: $2,850 over 1,028 miles is $2.77 a mile, below a $3.00 target.",
+          icon: "gauge"
         },
         {
-          title: "Verified broker",
-          desc: "Cross-checks the MC number against FMCSA + public payment history.",
-          icon: "shield",
-          example:
-            '"Broker with 12 SAFER complaints in the last 6 months."',
-        },
-      ],
+          title: "Every company in one place",
+          desc: "Each company you run gets its own co-pilot, trucks, drivers and brokers, plus a record of what every truck earned.",
+          icon: "shield"
+        }
+      ]
     },
     how: {
       tag: "In 3 steps",
-      title_1: "As simple as ",
-      title_2: "forwarding a WhatsApp",
-      title_3: ".",
+      title_1: "It’s that ",
+      title_2: "simple.",
+      title_3: "",
       steps: [
         {
-          title: "Upload the Rate Confirmation",
-          desc: "PDF, photo or screenshot. Forward the RC from any source.",
-          detail: "Formats: PDF, JPG, PNG, HEIC, even blurry screenshots.",
+          title: "Set up each truck once",
+          desc: "Add its cost per mile and your target."
         },
         {
-          title: "The AI reviews every field",
-          desc: "Extracts 15+ fields, compares them against your original quote and typical broker conditions.",
-          detail: "OCR + business rules + contextual LLM. End-to-end encrypted.",
+          title: "Upload the rate con or ask about a load",
+          desc: "PDF, photo or screenshot, or in your own words: ‘Is this load worth it?’"
         },
         {
-          title: "You get the verdict",
-          desc: "Clear traffic light: green sign it, yellow check this, red hold before signing.",
-          detail:
-            'Example: "🟡 Confirmed rate says $2,850 but your quote was $3,100. Diff: $250."',
-        },
-      ],
+          title: "Get the verdict",
+          desc: "Green, yellow or red, based on that truck’s numbers, before you book."
+        }
+      ]
+    },
+    academies: {
+      tag: "Trucky Academy",
+      title: "Run a dispatcher academy?",
+      text: "Teach with Trucky in your classes, at no cost to your academy. Your students practice with real loads and contracts, and start with 1 month free.",
+      cta: "Bring Trucky to my academy"
     },
     pricing: {
       tag: "Pricing",
-      title_1: "Simple. No surprises. ",
-      title_2: "The way it should be",
-      title_3: ".",
-      subtitle:
-        "We're in Early Access. Plans below are the reference; final price is set with you on the demo.",
+      title_1: "One plan per dispatcher, ",
+      title_2: "based on how many trucks you run.",
+      title_3: "",
+      subtitle: "Launch pricing.",
       plans: [
         {
-          name: "Owner-Op",
-          price: "US$29",
-          period: "/mo",
-          desc: "For a single driver",
+          name: "Starter",
+          price: "$29",
+          period: "/ month",
+          desc: "1 to 4 trucks",
           bullets: [
-            "Up to 50 RCs / month",
-            "App + WhatsApp",
-            "Email alerts",
-            "Chat support",
+            "An AI co-pilot for every company",
+            "Rate confirmation checker",
+            "Cost-per-mile calculator",
+            "Load records by truck and by company",
+            "English and Spanish"
           ],
-          cta: "Start",
+          cta: "Get started",
           highlight: false,
+          badge: ""
         },
         {
-          name: "Fleet",
-          price: "US$99",
-          period: "/mo",
-          desc: "Up to 10 drivers",
+          name: "Growth",
+          price: "$99",
+          period: "/ month",
+          desc: "5 to 10 trucks",
           bullets: [
-            "Unlimited RCs",
-            "Multi-user dashboard",
-            "Basic TMS integration",
-            "Weekly reports",
-            "Priority support",
+            "An AI co-pilot for every company",
+            "Rate confirmation checker",
+            "Cost-per-mile calculator",
+            "Load records by truck and by company",
+            "English and Spanish"
           ],
-          cta: "Start",
+          cta: "Get started",
           highlight: true,
-          badge: "Most popular",
-        },
-        {
-          name: "Enterprise",
-          price: "Custom",
-          period: "",
-          desc: "10+ trucks fleets",
-          bullets: [
-            "Everything in Fleet",
-            "API + Webhooks",
-            "SLA 99.9%",
-            "Dedicated onboarding",
-            "Custom contract",
-          ],
-          cta: "Contact",
-          highlight: false,
-        },
+          badge: "Most popular"
+        }
       ],
-      free_trial: "Monthly billing starts at checkout · No free month on these plans",
+      free_trial: "1 month free. Cancel anytime."
     },
     faq: {
       tag: "FAQ",
       title: "Still have questions?",
-      subtitle:
-        "If it's not here, message us on WhatsApp or ask the co-pilot.",
+      subtitle: "If it’s not here, message us on WhatsApp.",
       items: [
         {
-          q: "What documents can I process?",
-          a: "Rate Confirmations are the main focus. We also read BOLs, PODs, detention receipts and accessorial invoices. Any format.",
+          q: "What documents can I check?",
+          a: "Rate confirmations as a PDF, photo or screenshot."
         },
         {
-          q: "Does it integrate with my TMS?",
-          a: "Yes. Direct integrations with McLeod, TruckMate and Ascend TMS. For others we use API + Webhooks.",
+          q: "Does it work if I’m a new dispatcher?",
+          a: "Yes. Trucky gives you a ready-made system from your first carrier, no spreadsheet to build."
         },
         {
-          q: "Is it secure?",
-          a: "All documents are encrypted in transit (TLS 1.3) and at rest (AES-256). We do NOT use your data to train external models.",
+          q: "Does it connect to my TMS?",
+          a: "Today Trucky works on its own. We add integrations based on what dispatchers ask for."
         },
         {
-          q: "How long does it take to process an RC?",
-          a: "Average 30 seconds. Simple RCs: 15-20s. Multi-page or low-quality documents: up to 60s.",
+          q: "Is it available in Spanish?",
+          a: "Yes. The whole platform works in English and Spanish."
+        },
+        {
+          q: "What happens to my data?",
+          a: "Your data is yours. We’ll walk you through how we protect it in the demo."
         },
         {
           q: "Can I cancel anytime?",
-          a: "Yes, month-to-month. No lock-in.",
+          a: "Yes, no contracts."
         },
         {
           q: "How do I book a demo?",
-          a: 'Click "Book a demo" up top, or WhatsApp us at +57 311 553 3824.',
-        },
-      ],
+          a: "Use the ‘Book a demo’ button or WhatsApp. It takes 15 minutes, with one of your own loads."
+        }
+      ]
     },
     cta: {
-      title_1: "Try the Verifier with ",
-      title_2: "your own RC",
-      title_3: ".",
-      subtitle: "Reach out and we'll book a 20-minute demo. No commitment.",
-      primary: "Book a demo",
-      secondary: "Chat on WhatsApp",
+      title_1: "Try it with ",
+      title_2: "one of your own loads.",
+      title_3: "",
+      subtitle: "15 minutes. You bring the load, we show you the answer.",
+      primary: "Book a demo"
     },
     footer: {
       tagline: "Your road co-pilot. Less paperwork, more miles rolling.",
       product: "Product",
       product_links: [
-        { label: "Verifier", href: "#solution" },
+        { label: "Product", href: "#solution" },
         { label: "How it works", href: "#how" },
         { label: "Pricing", href: "#pricing" },
       ],
