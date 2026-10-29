@@ -3,10 +3,9 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 test('demo and both plans preserve selected language',()=>{
  const home=readFileSync('app/page.tsx','utf8');
- assert.ok(home.includes('demoWhatsAppHref(lang)'));
+ assert.ok(home.includes('/demo?lang=${lang}'));
  const plans=readFileSync('components/Sections.tsx','utf8');
- assert.ok(plans.includes('onClick={onOpenDemo}'));
- assert.ok(home.includes('<Pricing lang={lang} onOpenDemo='));
+ assert.ok(plans.includes('lang={lang}'));
  for(const file of ['app/demo/page.tsx','app/subscribe/page.tsx']){
   const source=readFileSync(file,'utf8');assert.ok(source.includes('useFlowLanguage'));
   assert.ok(source.includes('window.location.pathname'));

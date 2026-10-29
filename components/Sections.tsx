@@ -1,5 +1,6 @@
 "use client";
 
+import { PlanCheckoutButton } from "./PlanCheckoutButton";
 import { useState } from "react";
 import { Icon } from "./Icons";
 import { I18N, type Lang } from "@/lib/i18n";
@@ -164,7 +165,7 @@ export function Academies({ lang, onOpenDemo }: { lang: Lang; onOpenDemo: () => 
   );
 }
 
-export function Pricing({ lang, onOpenDemo }: { lang: Lang; onOpenDemo: () => void }) {
+export function Pricing({ lang }: { lang: Lang }) {
   const t = I18N[lang].pricing;
   return (
     <section id="pricing">
@@ -196,7 +197,7 @@ export function Pricing({ lang, onOpenDemo }: { lang: Lang; onOpenDemo: () => vo
                   </li>
                 ))}
               </ul>
-              <button onClick={onOpenDemo} className={`btn ${p.highlight ? "btn-primary" : "btn-ghost"} btn-block`}>{p.cta}</button>
+              <PlanCheckoutButton plan={i === 0 ? "owner_op" : "fleet"} lang={lang} label={p.cta} className={`btn ${p.highlight ? "btn-primary" : "btn-ghost"} btn-block`} />
             </div>
           ))}
         </div>

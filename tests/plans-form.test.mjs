@@ -7,8 +7,7 @@ test('both plan prices selected on server and posted explicitly',()=>{
  assert.ok(api.includes('STRIPE_PRICE_FLEET'));
  assert.ok(api.includes('EXISTING_CHECKOUT_DIFFERENT_PLAN'));
  const ui=readFileSync('components/Sections.tsx','utf8');
- assert.ok(!ui.includes('<PlanCheckoutButton'));
- assert.ok(ui.includes('<button onClick={onOpenDemo}'));
+ assert.ok(ui.includes('<PlanCheckoutButton'));
  const checkout=readFileSync('components/PlanCheckoutButton.tsx','utf8');
  assert.ok(checkout.includes('organization_id:id,plan'));
  assert.ok(checkout.includes("fetch('/api/checkout'"));

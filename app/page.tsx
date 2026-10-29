@@ -17,7 +17,7 @@ import {
 import { Footer } from "@/components/Footer";
 import { FloatingActions } from "@/components/Floating";
 import { DemoModal } from "@/components/DemoModal";
-import { demoWhatsAppHref, type Lang } from "@/lib/i18n";
+import type { Lang } from "@/lib/i18n";
 
 export default function HomePage() {
   const [lang, setLang] = useState<Lang>("es");
@@ -57,20 +57,20 @@ export default function HomePage() {
         setLang={setLang}
         theme={theme}
         setTheme={setTheme}
-        onOpenDemo={() => window.location.assign(demoWhatsAppHref(lang))}
+        onOpenDemo={() => window.location.assign(`/demo?lang=${lang}`)}
       />
       <main>
         {demoSent && <p role="status" style={{position:"fixed",bottom:24,left:24,zIndex:200,padding:20,background:"#24163b",color:"white",borderRadius:16}}>{lang === "en" ? "Request sent. Check your inbox and spam folder." : "Solicitud enviada. Revisa tu correo y la carpeta de spam."}</p>}
-        <Hero lang={lang} onOpenDemo={() => window.location.assign(demoWhatsAppHref(lang))} />
+        <Hero lang={lang} onOpenDemo={() => window.location.assign(`/demo?lang=${lang}`)} />
         <Problem lang={lang} />
         <WhoItsFor lang={lang} />
         <Solution lang={lang} />
         <HowItWorks lang={lang} />
 
-        <Academies lang={lang} onOpenDemo={() => window.location.assign(demoWhatsAppHref(lang))} />
-        <Pricing lang={lang} onOpenDemo={() => window.location.assign(demoWhatsAppHref(lang))} />
+        <Academies lang={lang} onOpenDemo={() => window.location.assign(`/demo?lang=${lang}`)} />
+        <Pricing lang={lang} />
         <FAQ lang={lang} />
-        <FinalCTA lang={lang} onOpenDemo={() => window.location.assign(demoWhatsAppHref(lang))} />
+        <FinalCTA lang={lang} onOpenDemo={() => window.location.assign(`/demo?lang=${lang}`)} />
       </main>
       <Footer lang={lang} />
       <FloatingActions lang={lang} />

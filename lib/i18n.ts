@@ -215,7 +215,12 @@ export const I18N = {
       company: "Compañía",
       company_links: [
         { label: "Preguntas frecuentes", href: "#faq" },
-        { label: "Contacto", href: `https://wa.me/${CONTACT.whatsapp.replace(/\D/g, "")}` },
+        { label: "Contacto", href: "#contact" },
+      ],
+      legal: "Legal",
+      legal_links: [
+        { label: "Privacidad", href: "#" },
+        { label: "Términos", href: "#" },
       ],
       copyright: "© 2026 Trucky. Todos los derechos reservados.",
     },
@@ -436,7 +441,12 @@ export const I18N = {
       company: "Company",
       company_links: [
         { label: "FAQ", href: "#faq" },
-        { label: "Contact", href: `https://wa.me/${CONTACT.whatsapp.replace(/\D/g, "")}` },
+        { label: "Contact", href: "#contact" },
+      ],
+      legal: "Legal",
+      legal_links: [
+        { label: "Privacy", href: "#" },
+        { label: "Terms", href: "#" },
       ],
       copyright: "© 2026 Trucky. All rights reserved.",
     },
@@ -458,8 +468,3 @@ export const I18N = {
     },
   },
 } as const;
-
-export function demoWhatsAppHref(lang: Lang) {
-  const message = lang === "es" ? CONTACT.whatsapp_msg_es : CONTACT.whatsapp_msg_en;
-  return `https://wa.me/${CONTACT.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
-}
