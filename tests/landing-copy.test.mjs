@@ -27,7 +27,7 @@ function load(filename) {
   new Function('require', 'module', 'exports', compiled)(localRequire, module, module.exports);
   return module.exports;
 }
-const { I18N } = load(path.resolve('lib/i18n.ts'));
+const { I18N, CONTACT, demoWhatsAppHref } = load(path.resolve('lib/i18n.ts'));
 const { Header } = load(path.resolve('components/Header.tsx'));
 const { Hero } = load(path.resolve('components/Hero.tsx'));
 const { Footer } = load(path.resolve('components/Footer.tsx'));
@@ -71,4 +71,27 @@ test('Spanish is default and academy is between how-it-works and pricing', () =>
   assert.ok(!home.includes('navigator.language'));
   assert.ok(home.indexOf('<HowItWorks') < home.indexOf('<Academies'));
   assert.ok(home.indexOf('<Academies') < home.indexOf('<Pricing'));
+});
+
+test('all landing CTAs use WhatsApp without sign-in or checkout', () => {
+  const home = readFileSync('app/page.tsx', 'utf8');
+  assert.equal((home.match(/onOpenDemo=\{\(\) => window.location.assign\(demoWhatsAppHref\(lang\)\)\}/g) || []).length, 5);
+  assert.ok(!home.includes('/demo?'));
+  const source = readFileSync('components/Sections.tsx', 'utf8');
+  assert.ok(!source.includes('PlanCheckoutButton'));
+  for (const lang of ['es', 'en']) {
+    const url = new URL(demoWhatsAppHref(lang));
+    assert.equal(url.origin, 'https://wa.me');
+    assert.equal(url.pathname, '/' + CONTACT.whatsapp.replace(/\D/g, ''));
+    assert.equal(url.searchParams.get('text'), lang === 'es' ? CONTACT.whatsapp_msg_es : CONTACT.whatsapp_msg_en);
+    const footer = render(React.createElement(Footer, { lang }));
+    assert.ok(!footer.includes('href="#"'));
+    assert.ok(!footer.includes('href="#contact"'));
+    assert.ok(footer.includes(`href="https://wa.me/${CONTACT.whatsapp.replace(/\D/g, '')}"`));
+    const pricing = text(render(React.createElement(sections.Pricing, { lang, onOpenDemo() {} })));
+    if (lang === 'es') {
+      assert.ok(pricing.includes('US$29/mes'));
+      assert.ok(pricing.includes('US$99/mes'));
+    }
+  }
 });

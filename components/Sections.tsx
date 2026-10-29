@@ -1,6 +1,5 @@
 "use client";
 
-import { PlanCheckoutButton } from "./PlanCheckoutButton";
 import { useState } from "react";
 import { Icon } from "./Icons";
 import { I18N, type Lang } from "@/lib/i18n";
@@ -165,7 +164,7 @@ export function Academies({ lang, onOpenDemo }: { lang: Lang; onOpenDemo: () => 
   );
 }
 
-export function Pricing({ lang }: { lang: Lang }) {
+export function Pricing({ lang, onOpenDemo }: { lang: Lang; onOpenDemo: () => void }) {
   const t = I18N[lang].pricing;
   return (
     <section id="pricing">
@@ -184,7 +183,7 @@ export function Pricing({ lang }: { lang: Lang }) {
             <div key={i} className={`price-card ${p.highlight ? "highlight" : ""}`}>
               {p.badge && <div className="price-badge">{p.badge}</div>}
               <div className="price-name">{p.name}</div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: lang === "es" ? 0 : 4 }}>
                 <span className="price-num">{p.price}</span>
                 <span className="price-period">{p.period}</span>
               </div>
@@ -197,7 +196,7 @@ export function Pricing({ lang }: { lang: Lang }) {
                   </li>
                 ))}
               </ul>
-              <PlanCheckoutButton plan={i === 0 ? "owner_op" : "fleet"} lang={lang} label={p.cta} className={`btn ${p.highlight ? "btn-primary" : "btn-ghost"} btn-block`} />
+              <button onClick={onOpenDemo} className={`btn ${p.highlight ? "btn-primary" : "btn-ghost"} btn-block`}>{p.cta}</button>
             </div>
           ))}
         </div>

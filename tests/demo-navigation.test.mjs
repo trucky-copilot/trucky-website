@@ -7,7 +7,7 @@ test('homepage demo buttons preserve language and avoid booking modal', () => {
  assert.ok(!home.includes('onOpenDemo={() => setDemoOpen(true)}'));
  const header=readFileSync('components/Header.tsx','utf8');
  assert.ok(header.includes('<AccountButton'));
- assert.ok(home.includes('window.location.assign(`/demo?lang=${lang}`)'));
+ assert.ok(home.includes('window.location.assign(demoWhatsAppHref(lang))'));
  assert.ok(!header.includes('{signedIn &&'));
  assert.ok(header.includes('{t.nav.cta}'));
 });
