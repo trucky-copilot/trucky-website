@@ -35,17 +35,17 @@ export const I18N = {
     },
     problem: {
       tag: "El problema",
-      title_1: "El broker quiere que firmes ya. ",
-      title_2: "Tú tienes tres empresas abiertas y un Excel.",
+      title_1: "El broker espera la firma mientras el dispatcher ",
+      title_2: "revisa a mano los contratos de varias empresas.",
       title_3: "",
       list: [
         "Un rate que no coincide con lo que cotizaste.",
         "Detention y accessorials que faltan o están mal calculados.",
         "Fechas de pickup o delivery que cambiaron.",
         "Términos de pago escondidos, como Net 45 o más.",
-        "Cuando el dueño pregunta cuánto le generaste, la respuesta está en un Excel."
+        "No existe un registro claro de lo que genera cada camión para cada cliente."
       ],
-      closing: "Una cláusula que nadie leyó le costó USD 2.000 de multa a un conductor con el que hablamos."
+      closing: "En nuestras entrevistas, un conductor reportó una multa de USD 2.000 por una cláusula no detectada."
     },
     who: {
       tag: "Para quién es",
@@ -55,7 +55,7 @@ export const I18N = {
       cards: [
         {
           role: "Dispatcher que empieza (1 a 4 camiones)",
-          desc: "Un sistema listo desde tu primer carrier, sin armar nada en Excel.",
+          desc: "Un sistema de trabajo completo desde el primer cliente, sin hojas de cálculo.",
           link: ""
         },
         {
@@ -72,10 +72,10 @@ export const I18N = {
     },
     solution: {
       tag: "La solución",
-      title_1: "Tres cosas que cambian ",
-      title_2: "lo que ganas por carga.",
+      title_1: "Tres funciones que mejoran ",
+      title_2: "la rentabilidad de cada carga.",
       title_3: "",
-      subtitle: "La IA no decide por ti. Tú tienes la última palabra.",
+      subtitle: "La IA no toma decisiones: la decisión final es siempre del dispatcher.",
       features: [
         {
           title: "Revisa cada contrato",
@@ -96,8 +96,8 @@ export const I18N = {
     },
     how: {
       tag: "En 3 pasos",
-      title_1: "Así de ",
-      title_2: "simple.",
+      title_1: "Cómo funciona, ",
+      title_2: "en tres pasos.",
       title_3: "",
       steps: [
         {
@@ -105,7 +105,7 @@ export const I18N = {
           desc: "Pon su costo por milla y tu meta."
         },
         {
-          title: "Sube la rate con o pregunta por una carga",
+          title: "Sube la rate confirmation o consulta una carga",
           desc: "PDF, foto o captura de pantalla, o con tus palabras: ‘¿me conviene esta carga?’"
         },
         {
@@ -130,7 +130,7 @@ export const I18N = {
         {
           name: "Inicial",
           price: "US$29",
-          period: "/ mes",
+          period: "/mes",
           desc: "De 1 a 4 camiones",
           bullets: [
             "Copiloto de IA por cada empresa",
@@ -146,7 +146,7 @@ export const I18N = {
         {
           name: "Crecimiento",
           price: "US$99",
-          period: "/ mes",
+          period: "/mes",
           desc: "De 5 a 10 camiones",
           bullets: [
             "Copiloto de IA por cada empresa",
@@ -173,7 +173,7 @@ export const I18N = {
         },
         {
           q: "¿Sirve si estoy empezando como dispatcher?",
-          a: "Sí. Trucky está pensado para que tengas tu sistema listo desde el primer carrier, sin armarlo en Excel."
+          a: "Sí. Trucky ofrece un sistema de trabajo completo desde el primer cliente, sin hojas de cálculo."
         },
         {
           q: "¿Se conecta con mi TMS?",
@@ -193,15 +193,15 @@ export const I18N = {
         },
         {
           q: "¿Cómo agendo una demo?",
-          a: "Con el botón ‘Agendar demo’ o por WhatsApp. Son 15 minutos, con una carga tuya."
+          a: "Con el botón ‘Agendar demo’ o por WhatsApp. La demostración dura 15 minutos y se realiza con una carga real."
         }
       ]
     },
     cta: {
-      title_1: "Pruébalo con ",
-      title_2: "una carga tuya.",
+      title_1: "Agenda una demostración ",
+      title_2: "de 15 minutos.",
       title_3: "",
-      subtitle: "15 minutos. Tú pones la carga y nosotros te mostramos la respuesta.",
+      subtitle: "Te mostramos la plataforma con una carga real y resolvemos tus preguntas.",
       primary: "Agendar demo"
     },
     footer: {
@@ -261,17 +261,17 @@ export const I18N = {
     },
     problem: {
       tag: "The problem",
-      title_1: "The broker wants you to sign now. ",
-      title_2: "You have three companies open and a spreadsheet.",
+      title_1: "The broker is waiting for a signature while the dispatcher ",
+      title_2: "checks contracts for several companies by hand.",
       title_3: "",
       list: [
         "A rate that doesn’t match what you quoted.",
         "Detention and accessorials that are missing or miscalculated.",
         "Pickup or delivery dates that changed.",
         "Hidden payment terms, like Net 45 or longer.",
-        "When an owner asks how much you made them, the answer lives in a spreadsheet."
+        "There is no clear record of what each truck earns for each client."
       ],
-      closing: "One clause nobody read cost a driver we spoke with a $2,000 fine."
+      closing: "In our interviews, a driver reported a $2,000 fine for a clause that went unnoticed."
     },
     who: {
       tag: "Who it’s for",
@@ -281,7 +281,7 @@ export const I18N = {
       cards: [
         {
           role: "New dispatchers (1 to 4 trucks)",
-          desc: "A ready-made system from your first carrier, no spreadsheet to build.",
+          desc: "A complete working system from the first client, with no spreadsheets.",
           link: ""
         },
         {
@@ -298,10 +298,10 @@ export const I18N = {
     },
     solution: {
       tag: "The solution",
-      title_1: "Three things that change ",
-      title_2: "what you make per load.",
+      title_1: "Three features that improve ",
+      title_2: "the profitability of every load.",
       title_3: "",
-      subtitle: "The AI never decides for you. You have the final say.",
+      subtitle: "The AI never makes the decision: the final call always belongs to the dispatcher.",
       features: [
         {
           title: "Checks every contract",
@@ -322,8 +322,8 @@ export const I18N = {
     },
     how: {
       tag: "In 3 steps",
-      title_1: "It’s that ",
-      title_2: "simple.",
+      title_1: "How it works, ",
+      title_2: "in three steps.",
       title_3: "",
       steps: [
         {
@@ -331,7 +331,7 @@ export const I18N = {
           desc: "Add its cost per mile and your target."
         },
         {
-          title: "Upload the rate con or ask about a load",
+          title: "Upload the rate confirmation or ask about a load",
           desc: "PDF, photo or screenshot, or in your own words: ‘Is this load worth it?’"
         },
         {
@@ -399,7 +399,7 @@ export const I18N = {
         },
         {
           q: "Does it work if I’m a new dispatcher?",
-          a: "Yes. Trucky gives you a ready-made system from your first carrier, no spreadsheet to build."
+          a: "Yes. Trucky provides a complete working system from the first client, with no spreadsheets."
         },
         {
           q: "Does it connect to my TMS?",
@@ -419,15 +419,15 @@ export const I18N = {
         },
         {
           q: "How do I book a demo?",
-          a: "Use the ‘Book a demo’ button or WhatsApp. It takes 15 minutes, with one of your own loads."
+          a: "Use the ‘Book a demo’ button or WhatsApp. The demo takes 15 minutes and uses a real load."
         }
       ]
     },
     cta: {
-      title_1: "Try it with ",
-      title_2: "one of your own loads.",
+      title_1: "Book a ",
+      title_2: "15-minute demo.",
       title_3: "",
-      subtitle: "15 minutes. You bring the load, we show you the answer.",
+      subtitle: "We’ll walk you through the platform with a real load and answer your questions.",
       primary: "Book a demo"
     },
     footer: {

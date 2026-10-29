@@ -184,7 +184,7 @@ export function Pricing({ lang }: { lang: Lang }) {
             <div key={i} className={`price-card ${p.highlight ? "highlight" : ""}`}>
               {p.badge && <div className="price-badge">{p.badge}</div>}
               <div className="price-name">{p.name}</div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: lang === "es" ? 0 : 4 }}>
                 <span className="price-num">{p.price}</span>
                 <span className="price-period">{p.period}</span>
               </div>
