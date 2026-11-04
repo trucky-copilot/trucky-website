@@ -1,3 +1,4 @@
+import { recordDemoRequest } from '@/lib/server/hubspot.mjs';
 import { isValidPhone } from '@/lib/phone-validation.mjs';
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
@@ -20,6 +21,8 @@ export async function POST(req: NextRequest) {
     const redis = redisCommandFromEnv();
     const quota = await redis(['EVAL',"local n=redis.call('INCR',KEYS[1]); if n==1 then redis.call('EXPIRE',KEYS[1],86400) end; return n",'1',`trucky:demo:mail:quota:${user.sub}`]);
     if (quota > 3) return reply('DAILY_LIMIT',429);
+    // Persist the contact and request before any trial activation or invitation.
+    await recordDemoRequest({name,phone,email});
     if (process.env.DEMO_TRIAL_ACTIVATION_ENABLED !== 'true') return reply('TRIAL_ACTIVATION_NOT_READY',503);
     const identity = await googleIdentity(req);
     const activation = await base44Call('activateDemoTrial', { google_id_token: identity.idToken });
@@ -44,6 +47,10 @@ export async function POST(req: NextRequest) {
     if (!sent.ok) return reply('EMAIL_NOT_SENT',503);
     return reply('EMAIL_ACCEPTED',200);
   } catch (error) {
+    if (error instanceof Error && ['CRM_NOT_CONFIGURED','CRM_NOT_SAVED','CRM_REQUIRES_REVIEW'].includes(error.message)) {
+      console.error('demo_crm_failed',{code:error.message});
+      return reply(error.message,503);
+    }
     if (error instanceof Error && ['ACTIVATION_NOT_ENABLED','ACTIVATION_REQUIRES_REVIEW','INVALID_TOKEN','UNAUTHORIZED'].includes(error.message)) return reply(error.message,503);
     if (error instanceof Error && error.message === 'SIGN_IN_REQUIRED') return reply('SIGN_IN_REQUIRED',401);
     return reply('DEMO_REQUEST_REQUIRES_REVIEW',503);
