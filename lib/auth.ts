@@ -14,6 +14,7 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === "google") {
         // Encrypted HttpOnly JWT; never copied into the public session callback.
         token.googleIdToken = account.id_token;
+        token.googleAuthenticatedAt = Math.floor(Date.now() / 1000);
         token.googleTokenExpires = account.expires_at;
       }
       return token;
