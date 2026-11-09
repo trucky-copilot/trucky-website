@@ -1,3 +1,4 @@
+import {verifyLiveCheckoutEligibility,expectedLivePrice,livePilotAllowsIdentity} from '@/lib/server/live-checkout-pilot.mjs';
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { base44Call, googleIdentity, sameOrigin } from "@/lib/server/base44";
@@ -22,6 +23,7 @@ export async function POST(req: NextRequest) {
     const allowedTestOrganizations = new Set((process.env.STRIPE_TEST_ORGANIZATION_IDS || "")
       .split(",").map(value => value.trim()).filter(Boolean));
     const {mode,live} = stripeMode();
+    if(live&&!livePilotAllowsIdentity(identity.sub,body.organization_id))return NextResponse.json({error:'LIVE_PILOT_ONLY'},{status:403});
     const publicDemo = process.env.PUBLIC_TEST_DEMO_ENABLED === "true";
     if (!live && !publicDemo && !allowedTestOrganizations.has(body.organization_id)) return NextResponse.json({ error: "TEST_ORGANIZATION_NOT_ALLOWED" }, { status: 403 });
     stage = "base44";
@@ -30,6 +32,11 @@ export async function POST(req: NextRequest) {
     const org = result.organizations.find((o: any) => o.id === body.organization_id && ["owner", "admin"].includes(o.role));
     if (!live && publicDemo && org?.billing_demo_enabled !== true) return NextResponse.json({ error: "DEMO_ORGANIZATION_REQUIRED" }, { status: 403 });
     if (!org) return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+    if(live){
+      if(result.mode!=='live')throw Error('LIVE_BACKEND_NOT_READY');
+      stage='live_checkout_eligibility';
+      await verifyLiveCheckoutEligibility(identity.sub,org.id);
+    }
     // Strictly permit first subscriptions only. Recovery/resubscription needs a separate flow.
     if (org.subscription_status !== "none" || org.can_checkout !== true) return NextResponse.json({ error: "ALREADY_SUBSCRIBED" }, { status: 409 });
     stage = "configuration";
@@ -53,6 +60,7 @@ export async function POST(req: NextRequest) {
     stage = "stripe_price";
     const price = await stripe.prices.retrieve(priceId);
     if (!price.active || price.livemode !== live || price.type !== "recurring" || price.recurring?.interval !== "month" || price.recurring.interval_count !== 1 || price.unit_amount === null || price.billing_scheme !== "per_unit") throw Error("INVALID_PRICE");
+    if(live&&!expectedLivePrice(price,plan))throw Error('INVALID_PRICE');
     stage = "redis_reserve";
     const command = redisCommandFromEnv();
     redis = command;
@@ -113,7 +121,7 @@ export async function POST(req: NextRequest) {
     const safe = (value: unknown) => typeof value === "string" && /^[a-zA-Z0-9_-]{1,100}$/.test(value) ? value : undefined;
     console.error("checkout_failure", { stage, category: safe(code), type: safe(sdk.type), code: safe(sdk.code), status: typeof sdk.statusCode === "number" ? sdk.statusCode : undefined, stripeRequestId: safe(sdk.requestId) });
     if (["ALREADY_SUBSCRIBED", "EXISTING_CHECKOUT_DIFFERENT_PLAN"].includes(code)) outcomeCertain = true;
-    const allowed = ["LEGACY_TRIAL_CHECKOUT_REQUIRES_REVIEW", "ALREADY_SUBSCRIBED", "EXISTING_CHECKOUT_DIFFERENT_PLAN", "SIGN_IN_REQUIRED", "CHECKOUT_LOCKED", "RECONCILIATION_REQUIRED"];
+    const allowed = ["LIVE_PILOT_ONLY", "LIVE_BACKEND_NOT_READY", "LEGACY_TRIAL_CHECKOUT_REQUIRES_REVIEW", "ALREADY_SUBSCRIBED", "EXISTING_CHECKOUT_DIFFERENT_PLAN", "SIGN_IN_REQUIRED", "CHECKOUT_LOCKED", "RECONCILIATION_REQUIRED"];
     return NextResponse.json({ error: allowed.includes(code) ? code : "CHECKOUT_UNAVAILABLE" }, { status: code === "SIGN_IN_REQUIRED" ? 401 : allowed.includes(code) ? 409 : 503 });
   } finally {
     if (mutationKey && redis && outcomeCertain) {

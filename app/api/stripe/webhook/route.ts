@@ -1,3 +1,4 @@
+import {livePilotAllowsOrganization} from '@/lib/server/live-checkout-pilot.mjs';
 import Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
 import { redisCommandFromEnv } from "@/lib/server/checkout-coordinator.mjs";
@@ -20,7 +21,7 @@ export async function POST(req: NextRequest) {
     event = stripe.webhooks.constructEvent(body, req.headers.get("stripe-signature") || "", secret);
   } catch { return reply("INVALID_SIGNATURE", 400); }
   if (event.livemode !== live) return reply("LIVE_EVENTS_NOT_ALLOWED", 400);
-  if ((live ? process.env.STRIPE_LIVE_PAYMENTS_ENABLED !== "true" : process.env.STRIPE_WEBHOOK_TEST_ENABLED !== "true")) return reply("PROVISIONING_NOT_ENABLED", 503);
+  if ((live ? process.env.STRIPE_WEBHOOK_LIVE_ENABLED !== "true" : process.env.STRIPE_WEBHOOK_TEST_ENABLED !== "true")) return reply("PROVISIONING_NOT_ENABLED", 503);
   const supported = ["customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted", "customer.subscription.trial_will_end", "invoice.paid", "invoice.payment_failed", "checkout.session.completed", "checkout.session.expired"];
   if (!supported.includes(event.type)) return reply("IGNORED", 200);
   let lock: string | undefined;
@@ -36,6 +37,7 @@ export async function POST(req: NextRequest) {
     const orgId = sub.metadata.org_id;
     const allowed = new Set((process.env.STRIPE_TEST_ORGANIZATION_IDS || "").split(",").map(s => s.trim()).filter(Boolean));
     if (!orgId || !/^[a-zA-Z0-9_-]{1,128}$/.test(orgId)) return reply("TEST_ORGANIZATION_NOT_ALLOWED", 403);
+    if(live&&!livePilotAllowsOrganization(orgId))return reply('LIVE_PILOT_ONLY',403);
     const publicEligible = process.env.PUBLIC_TEST_DEMO_ENABLED === "true" &&
       await redis(["GET", `trucky:demo:test:eligible:${orgId}`]) === "1";
     if (!live && !allowed.has(orgId) && !publicEligible) return reply("TEST_ORGANIZATION_NOT_ALLOWED", 403);
