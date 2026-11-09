@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     const allowedTestOrganizations = new Set((process.env.STRIPE_TEST_ORGANIZATION_IDS || "")
       .split(",").map(value => value.trim()).filter(Boolean));
     const {mode,live} = stripeMode();
-    if(live&&!livePilotAllowsIdentity(identity.sub,body.organization_id))return NextResponse.json({error:'LIVE_PILOT_ONLY'},{status:403});
+    if(live&&!livePilotAllowsIdentity(identity.sub,body.organization_id)&&process.env.BILLING_PUBLIC_ENROLLMENT_ENABLED!=='true')return NextResponse.json({error:'LIVE_PILOT_ONLY'},{status:403});
     const publicDemo = process.env.PUBLIC_TEST_DEMO_ENABLED === "true";
     if (!live && !publicDemo && !allowedTestOrganizations.has(body.organization_id)) return NextResponse.json({ error: "TEST_ORGANIZATION_NOT_ALLOWED" }, { status: 403 });
     stage = "base44";
@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
     if (!org) return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
     if (!live && !testCheckoutEligible(org,allowedTestOrganizations,publicDemo)) return NextResponse.json({ error: "DEMO_ORGANIZATION_REQUIRED" }, { status: 403 });
     if(live){
+      if(!livePilotAllowsIdentity(identity.sub,org.id)&&org.billing_public_enrollment!==true)throw Error('LIVE_PILOT_ONLY');
       if(result.mode!=='live')throw Error('LIVE_BACKEND_NOT_READY');
       stage='live_checkout_eligibility';
       await verifyLiveCheckoutEligibility(identity.sub,org.id);
@@ -128,7 +129,7 @@ export async function POST(req: NextRequest) {
     const safe = (value: unknown) => typeof value === "string" && /^[a-zA-Z0-9_-]{1,100}$/.test(value) ? value : undefined;
     console.error("checkout_failure", { stage, category: safe(code), type: safe(sdk.type), code: safe(sdk.code), status: typeof sdk.statusCode === "number" ? sdk.statusCode : undefined, stripeRequestId: safe(sdk.requestId) });
     if (["ALREADY_SUBSCRIBED", "EXISTING_CHECKOUT_DIFFERENT_PLAN"].includes(code)) outcomeCertain = true;
-    const allowed = ["LIVE_PILOT_ONLY", "LIVE_BACKEND_NOT_READY", "LEGACY_TRIAL_CHECKOUT_REQUIRES_REVIEW", "ALREADY_SUBSCRIBED", "EXISTING_CHECKOUT_DIFFERENT_PLAN", "SIGN_IN_REQUIRED", "CHECKOUT_LOCKED", "RECONCILIATION_REQUIRED"];
+    const allowed = ["LIVE_IDENTITY_LINK_REQUIRED", "LIVE_PILOT_ONLY", "LIVE_BACKEND_NOT_READY", "LEGACY_TRIAL_CHECKOUT_REQUIRES_REVIEW", "ALREADY_SUBSCRIBED", "EXISTING_CHECKOUT_DIFFERENT_PLAN", "SIGN_IN_REQUIRED", "CHECKOUT_LOCKED", "RECONCILIATION_REQUIRED"];
     return NextResponse.json({ error: allowed.includes(code) ? code : "CHECKOUT_UNAVAILABLE" }, { status: code === "SIGN_IN_REQUIRED" ? 401 : allowed.includes(code) ? 409 : 503 });
   } finally {
     if (mutationKey && redis && outcomeCertain) {
