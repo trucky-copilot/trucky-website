@@ -1,3 +1,4 @@
+import {testCheckoutEligible} from '@/lib/server/test-checkout-eligibility.mjs';
 import {verifyLiveCheckoutEligibility,expectedLivePrice,livePilotAllowsIdentity,assertNoExistingLiveSubscription} from '@/lib/server/live-checkout-pilot.mjs';
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
@@ -30,8 +31,8 @@ export async function POST(req: NextRequest) {
     const result = await base44Call("resolveUserOrganizations", { google_id_token: identity.idToken });
     if (result.user?.google_sub !== identity.sub || !Array.isArray(result.organizations)) throw Error("BASE44_UNAVAILABLE");
     const org = result.organizations.find((o: any) => o.id === body.organization_id && ["owner", "admin"].includes(o.role));
-    if (!live && publicDemo && org?.billing_demo_enabled !== true) return NextResponse.json({ error: "DEMO_ORGANIZATION_REQUIRED" }, { status: 403 });
     if (!org) return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+    if (!live && !testCheckoutEligible(org,allowedTestOrganizations,publicDemo)) return NextResponse.json({ error: "DEMO_ORGANIZATION_REQUIRED" }, { status: 403 });
     if(live){
       if(result.mode!=='live')throw Error('LIVE_BACKEND_NOT_READY');
       stage='live_checkout_eligibility';
