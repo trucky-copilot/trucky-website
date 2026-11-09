@@ -1,0 +1,18 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {livePilotAllowsIdentity,livePilotAllowsOrganization,verifyLiveCheckoutEligibility,expectedLivePrice} from '../lib/server/live-checkout-pilot.mjs';
+const env={BILLING_LINK_PILOT_GOOGLE_SUB:'fixture-sub',BILLING_LINK_PILOT_ORGANIZATION_ID:'fixture-org',TRUCKY_SERVER_SECRET:'test-fixture-only'};
+test('no wildcard or missing config permits live pilot',()=>{assert.equal(livePilotAllowsIdentity('fixture-sub','fixture-org',env),true);for(const [sub,org,e] of [['other','fixture-org',env],['fixture-sub','other',env],['fixture-sub','fixture-org',{}]])assert.equal(livePilotAllowsIdentity(sub,org,e),false);assert.equal(livePilotAllowsOrganization('fixture-org',env),true);assert.equal(livePilotAllowsOrganization('other',env),false);});
+test('eligibility is authenticated server call and response bound to subject and tenant',async()=>{let called=0;await verifyLiveCheckoutEligibility('fixture-sub','fixture-org',{env,fetcher:async(url,o)=>{called++;assert.equal(o.headers.Authorization,'Bearer test-fixture-only');assert.equal(o.redirect,'error');assert.deepEqual(JSON.parse(o.body),{google_sub:'fixture-sub',organization_id:'fixture-org'});return new Response(JSON.stringify({code:'LIVE_CHECKOUT_ELIGIBLE',organization_id:'fixture-org',google_sub:'fixture-sub',can_checkout:true}));}});assert.equal(called,1);});
+test('backend failures, mismatches and subscriptions stop charge preparation',async()=>{for(const data of [{code:'NO'},{code:'LIVE_CHECKOUT_ELIGIBLE',organization_id:'other',google_sub:'fixture-sub',can_checkout:true}])await assert.rejects(verifyLiveCheckoutEligibility('fixture-sub','fixture-org',{env,fetcher:async()=>new Response(JSON.stringify(data))}),/LIVE_BACKEND_NOT_READY/);await assert.rejects(verifyLiveCheckoutEligibility('fixture-sub','fixture-org',{env,fetcher:async()=>new Response(JSON.stringify({code:'ALREADY_SUBSCRIBED'}),{status:409})}),/ALREADY_SUBSCRIBED/);let called=false;await assert.rejects(verifyLiveCheckoutEligibility('other','fixture-org',{env,fetcher:()=>{called=true;}}),/LIVE_PILOT_ONLY/);assert.equal(called,false);});
+test('real monthly amounts/currency checked, not just price IDs',()=>{const p={livemode:true,active:true,currency:'usd',unit_amount:2900,type:'recurring',recurring:{interval:'month',interval_count:1},billing_scheme:'per_unit'};assert.equal(expectedLivePrice(p,'owner_op'),true);for(const other of [{...p,unit_amount:100},{...p,currency:'eur'},{...p,livemode:false}])assert.equal(expectedLivePrice(other,'owner_op'),false);});
+import {assertNoExistingLiveSubscription} from '../lib/server/live-checkout-pilot.mjs';
+test('search live subscriptions by safe org metadata including canceled and unsynced subscriptions',async()=>{
+ let query;
+ const stripe={subscriptions:{search:async p=>{query=p;return {data:[],has_more:false};}}};
+ await assertNoExistingLiveSubscription(stripe,'org_fixture');assert.deepEqual(query,{query:"metadata['org_id']:'org_fixture'",limit:1});
+ for(const result of [{data:[{id:'sub_x',status:'active'}]},{data:[{id:'sub_x',status:'canceled'}]},{data:[],has_more:true}])await assert.rejects(assertNoExistingLiveSubscription({subscriptions:{search:async()=>result}},'org_fixture'),/ALREADY_SUBSCRIBED/);
+});
+test('search failure or malformed result never allows checkout; no query injection',async()=>{
+ for(const search of [async()=>{throw Error('provider');},async()=>({})])await assert.rejects(assertNoExistingLiveSubscription({subscriptions:{search}},'org_fixture'));
+ let called=false;await assert.rejects(assertNoExistingLiveSubscription({subscriptions:{search:async()=>{called=true;}}},"org' OR status:'active"));assert.equal(called,false);
+});

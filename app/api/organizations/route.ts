@@ -13,6 +13,7 @@ export async function GET(req: NextRequest) {
     const identity = await googleIdentity(req);
     const result = await base44Call("resolveUserOrganizations", { google_id_token: identity.idToken });
     if (result.user?.google_sub !== identity.sub || !Array.isArray(result.organizations)) throw Error("BASE44_UNAVAILABLE");
+    if(process.env.STRIPE_MODE==='live'&&result.mode!=='live')throw Error('BASE44_UNAVAILABLE');
     const organizations = result.organizations.map((org: any) => {
       if (typeof org.id !== "string" || typeof org.name !== "string" || !["owner", "admin"].includes(org.role)) throw Error("BASE44_UNAVAILABLE");
       return { id: org.id, name: org.name, subscription_status: org.subscription_status, billing_demo_enabled: org.billing_demo_enabled === true };
