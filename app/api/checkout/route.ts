@@ -1,4 +1,4 @@
-import {verifyLiveCheckoutEligibility,expectedLivePrice,livePilotAllowsIdentity} from '@/lib/server/live-checkout-pilot.mjs';
+import {verifyLiveCheckoutEligibility,expectedLivePrice,livePilotAllowsIdentity,assertNoExistingLiveSubscription} from '@/lib/server/live-checkout-pilot.mjs';
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { base44Call, googleIdentity, sameOrigin } from "@/lib/server/base44";
@@ -67,6 +67,12 @@ export async function POST(req: NextRequest) {
     const candidateMutationKey = `trucky:checkout:${mode}:mutation:${org.id}`;
     if (await command(["SET", candidateMutationKey, owner, "NX"]) !== "OK") throw Error("CHECKOUT_LOCKED");
     mutationKey = candidateMutationKey;
+    if(live){
+      stage='live_existing_subscription';
+      await assertNoExistingLiveSubscription(stripe,org.id);
+      // Recheck Base44's uncertainty locks after taking the checkout mutation lock.
+      await verifyLiveCheckoutEligibility(identity.sub,org.id);
+    }
     const coordinator = createCheckoutCoordinator(command, `trucky:checkout:${mode}:v1`, live);
     let attempt = await coordinator.reserve(org.id, identity.sub);
     stage = "stripe_previous_session";
