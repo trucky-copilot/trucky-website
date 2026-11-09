@@ -160,7 +160,7 @@ export const I18N = {
           badge: "Más popular"
         }
       ],
-      free_trial: "1 mes gratis. Cancela cuando quieras."
+      free_trial: "Planes mensuales de US$29 y US$99, sin mes gratis. Los 30 días gratuitos corresponden solo a la demo."
     },
     faq: {
       tag: "Preguntas frecuentes",
@@ -386,7 +386,7 @@ export const I18N = {
           badge: "Most popular"
         }
       ],
-      free_trial: "1 month free. Cancel anytime."
+      free_trial: "US$29 and US$99 monthly plans, with no free month. The 30-day free period applies only to the demo."
     },
     faq: {
       tag: "FAQ",

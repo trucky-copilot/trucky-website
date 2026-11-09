@@ -72,3 +72,12 @@ test('Spanish is default and academy is between how-it-works and pricing', () =>
   assert.ok(home.indexOf('<HowItWorks') < home.indexOf('<Academies'));
   assert.ok(home.indexOf('<Academies') < home.indexOf('<Pricing'));
 });
+
+for (const lang of ['es','en']) {
+  test(`${lang}: paid pricing does not advertise a free month; demo remains separate`, () => {
+    const html = text(render(React.createElement(sections.Pricing, {lang})));
+    assert.ok(!html.includes(lang==='es'?'1 mes gratis':'1 month free'));
+    assert.ok(html.includes(encoded(I18N[lang].pricing.free_trial)));
+    assert.ok(I18N[lang].academies.text.includes(lang==='es'?'1 mes gratis':'1 month free'));
+  });
+}
