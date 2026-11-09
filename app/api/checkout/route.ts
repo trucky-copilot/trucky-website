@@ -24,7 +24,6 @@ export async function POST(req: NextRequest) {
     const allowedTestOrganizations = new Set((process.env.STRIPE_TEST_ORGANIZATION_IDS || "")
       .split(",").map(value => value.trim()).filter(Boolean));
     const {mode,live} = stripeMode();
-    if(live&&!livePilotAllowsIdentity(identity.sub,body.organization_id)&&process.env.BILLING_PUBLIC_ENROLLMENT_ENABLED!=='true')return NextResponse.json({error:'LIVE_PILOT_ONLY'},{status:403});
     const publicDemo = process.env.PUBLIC_TEST_DEMO_ENABLED === "true";
     if (!live && !publicDemo && !allowedTestOrganizations.has(body.organization_id)) return NextResponse.json({ error: "TEST_ORGANIZATION_NOT_ALLOWED" }, { status: 403 });
     stage = "base44";
@@ -37,7 +36,7 @@ export async function POST(req: NextRequest) {
       if(!livePilotAllowsIdentity(identity.sub,org.id)&&org.billing_public_enrollment!==true)throw Error('LIVE_PILOT_ONLY');
       if(result.mode!=='live')throw Error('LIVE_BACKEND_NOT_READY');
       stage='live_checkout_eligibility';
-      await verifyLiveCheckoutEligibility(identity.sub,org.id);
+      await verifyLiveCheckoutEligibility(identity.sub,org.id,{enrollmentValidated:org.billing_public_enrollment===true});
     }
     // Strictly permit first subscriptions only. Recovery/resubscription needs a separate flow.
     if (org.subscription_status !== "none" || org.can_checkout !== true) return NextResponse.json({ error: "ALREADY_SUBSCRIBED" }, { status: 409 });
@@ -73,7 +72,7 @@ export async function POST(req: NextRequest) {
       stage='live_existing_subscription';
       await assertNoExistingLiveSubscription(stripe,org.id);
       // Recheck Base44's uncertainty locks after taking the checkout mutation lock.
-      await verifyLiveCheckoutEligibility(identity.sub,org.id);
+      await verifyLiveCheckoutEligibility(identity.sub,org.id,{enrollmentValidated:org.billing_public_enrollment===true});
     }
     const coordinator = createCheckoutCoordinator(command, `trucky:checkout:${mode}:v1`, live);
     let attempt = await coordinator.reserve(org.id, identity.sub);

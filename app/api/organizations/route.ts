@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
 }
 export async function POST(req: NextRequest) {
   if (!sameOrigin(req)) return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+  if(process.env.STRIPE_MODE==='live'&&process.env.BILLING_PUBLIC_ENROLLMENT_ENABLED!=='true')return NextResponse.json({error:'PUBLIC_SIGNUPS_CLOSED'},{status:503});
   try {
     const identity = await googleIdentity(req);
     const body = await req.json();
