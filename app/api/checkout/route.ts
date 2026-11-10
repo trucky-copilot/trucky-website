@@ -33,8 +33,7 @@ export async function POST(req: NextRequest) {
     if (!org) return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
     if (!live && !testCheckoutEligible(org,allowedTestOrganizations,publicDemo)) return NextResponse.json({ error: "DEMO_ORGANIZATION_REQUIRED" }, { status: 403 });
     if(live){
-      // The fresh authoritative eligibility endpoint validates exact membership,
-      // server provenance and native binding. Resolver projection is not a second gate.
+      if(org.billing_account_verified!==true)throw Error('BILLING_ACCOUNT_REVIEW_REQUIRED');
       if(result.mode!=='live')throw Error('LIVE_BACKEND_NOT_READY');
       stage='live_checkout_eligibility';
       await verifyLiveCheckoutEligibility(identity.sub,org.id,{enrollmentValidated:org.billing_public_enrollment===true});
