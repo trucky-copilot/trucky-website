@@ -8,3 +8,5 @@ test('any account is not any company: server denial, altered identity or lost re
  for(const [status,data] of [[403,{}],[200,{code:'LIVE_CHECKOUT_ELIGIBLE',can_checkout:true,google_sub:'other',organization_id:'org'}],[503,{}]])await assert.rejects(verifyLiveCheckoutEligibility('google','org',{env:{TRUCKY_SERVER_SECRET:'fixture-only'},fetcher:async()=>new Response(JSON.stringify(data),{status})}),/LIVE_BACKEND_NOT_READY/);
 });
 test('malformed identity never reaches provider',async()=>{let called=false;await assert.rejects(verifyLiveCheckoutEligibility('bad:sub','org',{env:{TRUCKY_SERVER_SECRET:'fixture-only'},fetcher:async()=>{called=true;}}),/INVALID_BILLING_IDENTITY/);assert.equal(called,false);});
+
+test('existing company receives explicit review code without weakening eligibility',async()=>{await assert.rejects(verifyLiveCheckoutEligibility('google','org',{env:{TRUCKY_SERVER_SECRET:'fixture'},fetcher:async()=>new Response(JSON.stringify({code:'BILLING_ACCOUNT_REVIEW_REQUIRED'}),{status:409})}),/BILLING_ACCOUNT_REVIEW_REQUIRED/);});
