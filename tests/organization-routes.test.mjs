@@ -6,7 +6,7 @@ import { spawn } from 'node:child_process';
 test('organization APIs fail closed without a session and reject cross-origin writes', async () => {
   const port = 3189;
   const child = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-p', String(port)], {
-    stdio: 'ignore', env: { ...process.env, NEXTAUTH_SECRET: 'local-test-only-not-a-deployment-secret', NEXTAUTH_URL: `http://localhost:${port}`, BASE44_ORGANIZATIONS_ENABLED: 'false' },
+    stdio: 'ignore', env: { ...process.env, NEXTAUTH_SECRET: 'local-test-only-not-a-deployment-secret', NEXTAUTH_URL: `http://localhost:${port}`, BASE44_ORGANIZATIONS_ENABLED: 'false', BILLING_EXISTING_ENROLLMENT_ENABLED:'true' },
   });
   try {
     const base = `http://localhost:${port}`;
@@ -17,6 +17,10 @@ test('organization APIs fail closed without a session and reject cross-origin wr
     }
     assert.ok(ready, 'local server ready');
     assert.equal((await fetch(`${base}/subscribe`)).status, 200);
+    assert.equal((await fetch(`${base}/billing-link/existing`)).status,200);
+    const approval=await fetch(`${base}/api/billing/existing-enrollment`,{method:'POST',headers:{origin:base,'Content-Type':'application/json'},body:JSON.stringify({owner_consent:true})});
+    assert.equal(approval.status,401);assert.equal((await approval.json()).code,'FRESH_SIGN_IN_REQUIRED');
+    assert.equal((await fetch(`${base}/api/billing/existing-enrollment`,{method:'POST',headers:{origin:'https://foreign.invalid'},body:'{}'})).status,403);
     const response = await fetch(`${base}/api/organizations`);
     assert.equal(response.status, 401);
     assert.deepEqual(await response.json(), { error: 'SIGN_IN_REQUIRED' });
