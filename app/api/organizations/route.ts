@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     if(process.env.STRIPE_MODE==='live'&&result.mode!=='live')throw Error('BASE44_UNAVAILABLE');
     const organizations = result.organizations.map((org: any) => {
       if (typeof org.id !== "string" || typeof org.name !== "string" || !["owner", "admin"].includes(org.role)) throw Error("BASE44_UNAVAILABLE");
-      return { id: org.id, name: org.name, subscription_status: org.subscription_status, billing_demo_enabled: org.billing_demo_enabled === true };
+      return { id: org.id, name: org.name, subscription_status: org.subscription_status, billing_demo_enabled: org.billing_demo_enabled === true, billing_account_verified:org.billing_account_verified===true, billing_identity_linked:org.billing_identity_linked===true };
     });
     return NextResponse.json({ organizations }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) { return failure(error); }

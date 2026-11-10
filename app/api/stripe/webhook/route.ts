@@ -1,5 +1,3 @@
-import {registeredPublicOrganization} from '@/lib/server/public-enrollment.mjs';
-import {livePilotAllowsOrganization} from '@/lib/server/live-checkout-pilot.mjs';
 import Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
 import { redisCommandFromEnv } from "@/lib/server/checkout-coordinator.mjs";
@@ -38,7 +36,8 @@ export async function POST(req: NextRequest) {
     const orgId = sub.metadata.org_id;
     const allowed = new Set((process.env.STRIPE_TEST_ORGANIZATION_IDS || "").split(",").map(s => s.trim()).filter(Boolean));
     if (!orgId || !/^[a-zA-Z0-9_-]{1,128}$/.test(orgId)) return reply("TEST_ORGANIZATION_NOT_ALLOWED", 403);
-    if(live&&!livePilotAllowsOrganization(orgId)&&!await registeredPublicOrganization(redis,orgId,undefined))return reply('LIVE_PILOT_ONLY',403);
+    // All live organizations are independently checked by Base44 against
+    // current server-owned membership/provenance/native binding before projection.
     const publicEligible = process.env.PUBLIC_TEST_DEMO_ENABLED === "true" &&
       await redis(["GET", `trucky:demo:test:eligible:${orgId}`]) === "1";
     if (!live && !allowed.has(orgId) && !publicEligible) return reply("TEST_ORGANIZATION_NOT_ALLOWED", 403);
