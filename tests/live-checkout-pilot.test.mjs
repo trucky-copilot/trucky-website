@@ -16,3 +16,5 @@ test('search failure or malformed result never allows checkout; no query injecti
  for(const search of [async()=>{throw Error('provider');},async()=>({})])await assert.rejects(assertNoExistingLiveSubscription({subscriptions:{search}},'org_fixture'));
  let called=false;await assert.rejects(assertNoExistingLiveSubscription({subscriptions:{search:async()=>{called=true;}}},"org' OR status:'active"));assert.equal(called,false);
 });
+
+test('authoritative backend decision allows verified account without resolver flag and preserves ownership denial',async()=>{await verifyLiveCheckoutEligibility('fixture-sub','fixture-org',{env,enrollmentValidated:false,fetcher:async()=>Response.json({code:'LIVE_CHECKOUT_ELIGIBLE',organization_id:'fixture-org',google_sub:'fixture-sub',can_checkout:true})});await assert.rejects(verifyLiveCheckoutEligibility('fixture-sub','fixture-org',{env,fetcher:async()=>Response.json({code:'BILLING_ACCOUNT_REVIEW_REQUIRED'},{status:409})}),/BILLING_ACCOUNT_REVIEW_REQUIRED/);});
