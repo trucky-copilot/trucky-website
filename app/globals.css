@@ -1448,6 +1448,6 @@ main form label input { display:block; width:100%; padding:12px; margin-top:6px;
   .nav-tools { gap: 5px; }
   .nav-tools .icon-btn { width: 30px; height: 36px; }
   .nav-tools .lang-toggle { flex-shrink: 0; padding: 2px; }
-  .nav-tools .lang-toggle button { padding: 8px; font-size: 11px; }
+  .nav-tools .lang-toggle button { padding: 8px 12px; font-size: 11px; }
   .nav-tools > .btn { padding: 12px 10px; font-size: 12px; white-space: nowrap; }
 }
