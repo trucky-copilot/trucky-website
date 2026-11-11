@@ -56,16 +56,20 @@ export function Header({ lang, setLang, theme, setTheme, onOpenDemo }: Props) {
         <div className="nav-tools">
           <AccountButton lang={lang} />
 
-          <div className="lang-toggle desktop-only">
+          <div className="lang-toggle" role="group" aria-label={lang === "es" ? "Idioma" : "Language"}>
             <button
               className={lang === "es" ? "active" : ""}
               onClick={() => setLang("es")}
+              aria-label="Español"
+              aria-pressed={lang === "es"}
             >
               ES
             </button>
             <button
               className={lang === "en" ? "active" : ""}
               onClick={() => setLang("en")}
+              aria-label="English"
+              aria-pressed={lang === "en"}
             >
               EN
             </button>

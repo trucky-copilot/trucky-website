@@ -1439,3 +1439,15 @@ main form label input { display:block; width:100%; padding:12px; margin-top:6px;
   background:#fff;
   color:#6332ce;
 }
+
+/* Keep language selection accessible without pushing account/demo off mobile. */
+@media (max-width: 600px) {
+  .nav-inner { padding-inline: 12px; gap: 8px; }
+  .nav-logo { flex-shrink: 0; }
+  .nav-logo img { max-width: 76px; height: auto; }
+  .nav-tools { gap: 5px; }
+  .nav-tools .icon-btn { width: 30px; height: 36px; }
+  .nav-tools .lang-toggle { flex-shrink: 0; padding: 2px; }
+  .nav-tools .lang-toggle button { padding: 8px; font-size: 11px; }
+  .nav-tools > .btn { padding: 12px 10px; font-size: 12px; white-space: nowrap; }
+}
