@@ -27,6 +27,6 @@ test('copy update leaves checkout trial configuration unchanged and cached trial
  assert.ok(api.includes('payload.subscription_data?.trial_end'));
  const copy=readFileSync('lib/i18n.ts','utf8');
  // Marketing follows the new brief; enabling the offer remains a separate billing change.
- assert.ok(copy.includes('Planes mensuales de US$29 y US$99, sin mes gratis. Los 30 días gratuitos corresponden solo a la demo.'));
- assert.ok(copy.includes('US$29 and US$99 monthly plans, with no free month. The 30-day free period applies only to the demo.'));
+ assert.ok(copy.includes('Planes mensuales de US$29 y US$99, sin mes gratis. Los 15 días gratuitos corresponden solo a la demo.'));
+ assert.ok(copy.includes('US$29 and US$99 monthly plans, with no free month. The 15-day free period applies only to the demo.'));
 });

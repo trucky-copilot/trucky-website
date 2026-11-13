@@ -1,3 +1,4 @@
+import {validateDemoDates} from '@/lib/server/trial-dates.mjs';
 import { recordDemoRequest } from '@/lib/server/hubspot.mjs';
 import { isValidPhone } from '@/lib/phone-validation.mjs';
 import { NextRequest, NextResponse } from 'next/server';
@@ -27,10 +28,9 @@ export async function POST(req: NextRequest) {
     const identity = await googleIdentity(req);
     const activation = await base44Call('activateDemoTrial', { google_id_token: identity.idToken });
     if (activation.code !== 'DEMO_TRIAL_ACTIVATED') return reply('TRIAL_ACTIVATION_FAILED',503);
-    const start = Date.parse(activation.trial_started_at || '');
-    const end = Date.parse(activation.trial_ends_at || '');
-    if (!Number.isFinite(start) || !Number.isFinite(end) || end - start !== 30 * 86400000) return reply('TRIAL_DATES_INVALID',503);
-    if (activation.expired === true) return reply('DEMO_TRIAL_EXPIRED',409);
+    const trial = validateDemoDates(activation);
+    if (!trial.valid) return reply('TRIAL_DATES_INVALID',503);
+    if (trial.expired) return reply('DEMO_TRIAL_EXPIRED',409);
     const encrypted = await redis(['GET',TOKEN_KEY]);
     if (!encrypted) return reply('SENDER_NOT_CONNECTED',503);
     const refreshed = await fetch('https://oauth2.googleapis.com/token', {
