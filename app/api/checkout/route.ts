@@ -1,3 +1,4 @@
+import {checkLivePricePreflight} from '@/lib/server/live-price-preflight.mjs';
 import {firstPaymentOffer,assertSameCheckoutOffer,replaceUnconfirmedOffer} from '@/lib/server/first-payment-offer.mjs';
 import {testCheckoutEligible} from '@/lib/server/test-checkout-eligibility.mjs';
 import {verifyLiveCheckoutEligibility,expectedLivePrice,assertNoExistingLiveSubscription} from '@/lib/server/live-checkout-pilot.mjs';
@@ -51,12 +52,7 @@ export async function POST(req: NextRequest) {
       stage = "live_backend_preflight";
       const serverSecret = process.env.TRUCKY_SERVER_SECRET;
       if (!serverSecret) throw Error("CONFIGURATION_REQUIRED");
-      const ready = await fetch("https://trucky-17a283d5.base44.app/api/functions/checkLiveBillingConfiguration", {
-        method:"POST", redirect:"error", signal:AbortSignal.timeout(15000),
-        headers:{Authorization:`Bearer ${serverSecret}`,"Content-Type":"application/json"},
-        body:JSON.stringify({prices:[process.env.STRIPE_LIVE_PRICE_OWNER_OP,process.env.STRIPE_LIVE_PRICE_FLEET]}),
-      });
-      if (!ready.ok || (await ready.json()).code !== "LIVE_CONFIGURATION_VALID") throw Error("LIVE_BACKEND_NOT_READY");
+      await checkLivePricePreflight({secret:serverSecret,prices:[process.env.STRIPE_LIVE_PRICE_OWNER_OP,process.env.STRIPE_LIVE_PRICE_FLEET]});
     }
     const stripe = new Stripe(key);
     stage = "stripe_price";
