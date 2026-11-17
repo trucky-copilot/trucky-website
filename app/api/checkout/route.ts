@@ -1,3 +1,4 @@
+import {firstPaymentOffer,assertSameCheckoutOffer,replaceUnconfirmedOffer} from '@/lib/server/first-payment-offer.mjs';
 import {testCheckoutEligible} from '@/lib/server/test-checkout-eligibility.mjs';
 import {verifyLiveCheckoutEligibility,expectedLivePrice,assertNoExistingLiveSubscription} from '@/lib/server/live-checkout-pilot.mjs';
 import { NextRequest, NextResponse } from "next/server";
@@ -62,6 +63,8 @@ export async function POST(req: NextRequest) {
     const price = await stripe.prices.retrieve(priceId);
     if (!price.active || price.livemode !== live || price.type !== "recurring" || price.recurring?.interval !== "month" || price.recurring.interval_count !== 1 || price.unit_amount === null || price.billing_scheme !== "per_unit") throw Error("INVALID_PRICE");
     if(live&&!expectedLivePrice(price,plan))throw Error('INVALID_PRICE');
+    stage = 'first_payment_offer';
+    const discounts = await firstPaymentOffer(stripe,price,plan,{live});
     stage = "redis_reserve";
     const command = redisCommandFromEnv();
     redis = command;
@@ -81,6 +84,7 @@ export async function POST(req: NextRequest) {
     // Retain it on uncertain Stripe/Redis writes rather than allowing overlap.
     outcomeCertain = false;
     attempt = await replaceUnconfirmedPlan(stripe, coordinator, org.id, attempt, priceId, identity.sub, live);
+    attempt = await replaceUnconfirmedOffer(stripe,coordinator,command,org.id,attempt,discounts,identity.sub,mode);
     if (Date.now() - attempt.createdAt > 20 * 60 * 60 * 1000) throw Error("RECONCILIATION_REQUIRED");
     const origin = new URL(process.env.NEXTAUTH_URL).origin;
     stage = "redis_payload";
@@ -88,6 +92,7 @@ export async function POST(req: NextRequest) {
       mode: "subscription",
       client_reference_id: org.id,
       line_items: [{ price: priceId, quantity: 1 }],
+      ...(discounts.length ? {discounts} : {}),
       payment_method_collection: "always",
       billing_address_collection: "required",
       tax_id_collection: { enabled: true },
@@ -98,6 +103,7 @@ export async function POST(req: NextRequest) {
       success_url: `${origin}/subscribe?checkout=returned`,
       cancel_url: `${origin}/#pricing`,
     });
+    assertSameCheckoutOffer(payload,discounts);
     // Cached attempts retain immutable Stripe parameters. Never silently reuse a
     // free-trial request after switching paid plans to immediate billing.
     if (payload.subscription_data?.trial_period_days || payload.subscription_data?.trial_end) throw Error("LEGACY_TRIAL_CHECKOUT_REQUIRES_REVIEW");
@@ -128,7 +134,7 @@ export async function POST(req: NextRequest) {
     const safe = (value: unknown) => typeof value === "string" && /^[a-zA-Z0-9_-]{1,100}$/.test(value) ? value : undefined;
     console.error("checkout_failure", { stage, category: safe(code), type: safe(sdk.type), code: safe(sdk.code), status: typeof sdk.statusCode === "number" ? sdk.statusCode : undefined, stripeRequestId: safe(sdk.requestId) });
     if (["ALREADY_SUBSCRIBED", "EXISTING_CHECKOUT_DIFFERENT_PLAN"].includes(code)) outcomeCertain = true;
-    const allowed = ["BILLING_ACCOUNT_REVIEW_REQUIRED", "LIVE_IDENTITY_LINK_REQUIRED", "LIVE_PILOT_ONLY", "LIVE_BACKEND_NOT_READY", "LEGACY_TRIAL_CHECKOUT_REQUIRES_REVIEW", "ALREADY_SUBSCRIBED", "EXISTING_CHECKOUT_DIFFERENT_PLAN", "SIGN_IN_REQUIRED", "CHECKOUT_LOCKED", "RECONCILIATION_REQUIRED"];
+    const allowed = ["CHECKOUT_OFFER_CHANGED", "FIRST_PAYMENT_OFFER_INVALID", "BILLING_ACCOUNT_REVIEW_REQUIRED", "LIVE_IDENTITY_LINK_REQUIRED", "LIVE_PILOT_ONLY", "LIVE_BACKEND_NOT_READY", "LEGACY_TRIAL_CHECKOUT_REQUIRES_REVIEW", "ALREADY_SUBSCRIBED", "EXISTING_CHECKOUT_DIFFERENT_PLAN", "SIGN_IN_REQUIRED", "CHECKOUT_LOCKED", "RECONCILIATION_REQUIRED"];
     return NextResponse.json({ error: allowed.includes(code) ? code : "CHECKOUT_UNAVAILABLE" }, { status: code === "SIGN_IN_REQUIRED" ? 401 : allowed.includes(code) ? 409 : 503 });
   } finally {
     if (mutationKey && redis && outcomeCertain) {
