@@ -17,7 +17,7 @@ test('demo fields are empty initially and accepted send returns home',()=>{
  assert.ok(!ui.includes('setName(session.user.name'));
  assert.ok(!ui.includes('setEmail(session.user.email'));
  assert.ok(ui.includes("window.location.assign('/?demo=sent&lang='"));
- assert.ok(ui.includes('onChange={e=>setEmail'));
+ assert.ok(ui.includes("onChange={e=>{setEmail(e.target.value);clear('email');}}"));
 });
 
 test('copy update leaves checkout trial configuration unchanged and cached trial attempts fail closed',()=>{

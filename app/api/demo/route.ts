@@ -1,6 +1,6 @@
 import {activateDemoForInvitation,dispatcherCodeInput} from '@/lib/server/demo-activation.mjs';
 import { recordDemoRequest } from '@/lib/server/hubspot.mjs';
-import { isValidPhone } from '@/lib/phone-validation.mjs';
+import {invalidDemoFields} from '@/lib/demo-details.mjs';
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { sameOrigin, googleIdentity, base44Call } from '@/lib/server/base44';
@@ -17,8 +17,8 @@ export async function POST(req: NextRequest) {
     const phone = typeof body.phone === 'string' ? body.phone.trim() : '';
     const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
     // Fixed verified recipient prevents turning this form into an email relay.
-    if (!isValidPhone(phone)) return reply('INVALID_PHONE',400);
-    if (!name || name.length>100 || email !== user.email.toLowerCase()) return reply('INVALID_DETAILS',400);
+    const fields = invalidDemoFields({name,phone,email},user.email);
+    if (fields.length) return NextResponse.json({code:'INVALID_DETAILS',fields},{status:400});
     const dispatcherCode = dispatcherCodeInput(body.dispatcher_code);
     const redis = redisCommandFromEnv();
     // Independent abuse throttle; invalid codes never spend the email quota.

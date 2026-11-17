@@ -1,3 +1,4 @@
+import {invalidDemoFields} from '../lib/demo-details.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import vm from 'node:vm';import ts from 'typescript';
 import * as activation from '../lib/server/demo-activation.mjs';
 const src=readFileSync('app/api/demo/route.ts','utf8');
@@ -15,7 +16,7 @@ function world(){
  const modules={
   '@/lib/server/demo-activation.mjs':activation,
   '@/lib/server/hubspot.mjs':{recordDemoRequest:async()=>{state.crm++;}},
-  '@/lib/phone-validation.mjs':{isValidPhone:s=>/^\d{7,15}$/.test(s)},
+  '@/lib/demo-details.mjs':{invalidDemoFields},
   'next/server':{NextResponse:{json:(body,{status})=>Response.json(body,{status})}},
   'next-auth/jwt':{getToken},
   '@/lib/server/base44':{sameOrigin:()=>true,googleIdentity:async()=>({sub:'fixture_google',idToken:'fixture-id-token'}),base44Call},
@@ -28,3 +29,5 @@ function world(){
 test('actual route invalid code 400, no trial/quota/CRM/Gmail; corrected request succeeds',async()=>{const w=world();const invalid=await w.post({dispatcher_code:'bad'});assert.equal(invalid.status,400);assert.deepEqual(await invalid.json(),{code:'INVALID_DISPATCHER_CODE'});assert.equal(w.state.grant,null);assert.equal(w.state.mailQuota,0);assert.equal(w.state.crm,0);assert.equal(w.state.sent,0);const corrected=await w.post({dispatcher_code:'fixture-bonus'});assert.equal(corrected.status,200);assert.deepEqual(await corrected.json(),{code:'EMAIL_ACCEPTED'});assert.equal(w.state.grant.trial_kind,'dispatcher');assert.equal(w.state.mailQuota,1);assert.equal(w.state.sent,1);});
 test('actual route empty code activates demo, later bonus leaves grant unchanged',async()=>{const w=world();assert.equal((await w.post({})).status,200);const original=structuredClone(w.state.grant);assert.equal(original.trial_kind,'demo');assert.equal(w.state.activated[0].dispatcher_code,'');assert.equal((await w.post({dispatcher_code:'fixture-bonus'})).status,200);assert.deepEqual(w.state.grant,original);assert.equal(w.state.sent,2);});
 test('actual route rejects wrong type before any request and expired/malformed grants before mail',async()=>{const w=world();assert.equal((await w.post({dispatcher_code:{bad:true}})).status,400);assert.equal(w.state.activated.length,0);const now=Date.now();w.state.grant={code:'DEMO_TRIAL_ACTIVATED',trial_started_at:new Date(now-30*86400000).toISOString(),trial_ends_at:new Date(now-1).toISOString()};assert.equal((await w.post({})).status,409);assert.equal(w.state.sent,0);assert.equal(w.state.mailQuota,0);});
+test('wrong email returns exact field before any trial/CRM/email operation, then corrected input succeeds',async()=>{const w=world();const r=await w.post({email:'other@example.invalid'});assert.equal(r.status,400);assert.deepEqual(await r.json(),{code:'INVALID_DETAILS',fields:['email']});assert.equal(w.state.activated.length,0);assert.equal(w.state.sent,0);assert.equal(w.state.mailQuota,0);assert.equal((await w.post({email:'fixture@example.invalid'})).status,200);});
+test('name and phone failures are marked without activating or emailing',async()=>{const w=world();const r=await w.post({name:' ',phone:'123'});assert.equal(r.status,400);assert.deepEqual(await r.json(),{code:'INVALID_DETAILS',fields:['name','phone']});assert.equal(w.state.activated.length,0);});
