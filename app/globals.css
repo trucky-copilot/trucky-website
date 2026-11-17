@@ -1451,3 +1451,20 @@ main form label input { display:block; width:100%; padding:12px; margin-top:6px;
   .nav-tools .lang-toggle button { padding: 8px 12px; font-size: 11px; }
   .nav-tools > .btn { padding: 12px 10px; font-size: 12px; white-space: nowrap; }
 }
+
+/* Keep browser autofill consistent with the demo fields, including focus/hover. */
+.demo-card form label input:autofill {
+  background-color: #20162f;
+  color: #fff;
+  caret-color: #fff;
+  box-shadow: 0 0 0 1000px #20162f inset;
+}
+.demo-card form label input:-webkit-autofill,
+.demo-card form label input:-webkit-autofill:hover,
+.demo-card form label input:-webkit-autofill:focus,
+.demo-card form label input:-webkit-autofill:active {
+  -webkit-text-fill-color: #fff;
+  caret-color: #fff;
+  -webkit-box-shadow: 0 0 0 1000px #20162f inset;
+  box-shadow: 0 0 0 1000px #20162f inset;
+}
