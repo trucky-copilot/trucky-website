@@ -1,3 +1,4 @@
+import {activationErrorCode} from './demo-activation.mjs';
 import { getToken } from "next-auth/jwt";
 import type { NextRequest } from "next/server";
 
@@ -24,10 +25,10 @@ export async function base44Call(name: "resolveUserOrganizations" | "createOrgan
   });
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
-    const activationCodes = ["ACTIVATION_NOT_ENABLED", "ACTIVATION_REQUIRES_REVIEW", "INVALID_TOKEN", "UNAUTHORIZED", "METHOD_NOT_ALLOWED"];
-    const code = name === "activateDemoTrial" && activationCodes.includes(payload?.code) ? payload.code : "UNRECOGNIZED_BACKEND_ERROR";
+    const activationCode = activationErrorCode(name, response.status, payload);
+    const code = activationCode || "UNRECOGNIZED_BACKEND_ERROR";
     console.error("base44_request_failed", { operation: name, status: response.status, code });
-    if (name === "activateDemoTrial" && activationCodes.includes(code)) throw new Error(code);
+    if (activationCode) throw new Error(activationCode);
     throw new Error(response.status === 401 ? "BASE44_AUTHENTICATION_FAILED" : "BASE44_UNAVAILABLE");
   }
   return response.json();

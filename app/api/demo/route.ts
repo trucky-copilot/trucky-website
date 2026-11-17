@@ -1,4 +1,4 @@
-import {validateDemoDates} from '@/lib/server/trial-dates.mjs';
+import {activateDemoForInvitation,dispatcherCodeInput} from '@/lib/server/demo-activation.mjs';
 import { recordDemoRequest } from '@/lib/server/hubspot.mjs';
 import { isValidPhone } from '@/lib/phone-validation.mjs';
 import { NextRequest, NextResponse } from 'next/server';
@@ -19,18 +19,18 @@ export async function POST(req: NextRequest) {
     // Fixed verified recipient prevents turning this form into an email relay.
     if (!isValidPhone(phone)) return reply('INVALID_PHONE',400);
     if (!name || name.length>100 || email !== user.email.toLowerCase()) return reply('INVALID_DETAILS',400);
+    const dispatcherCode = dispatcherCodeInput(body.dispatcher_code);
     const redis = redisCommandFromEnv();
-    const quota = await redis(['EVAL',"local n=redis.call('INCR',KEYS[1]); if n==1 then redis.call('EXPIRE',KEYS[1],86400) end; return n",'1',`trucky:demo:mail:quota:${user.sub}`]);
-    if (quota > 3) return reply('DAILY_LIMIT',429);
-    // Persist the contact and request before any trial activation or invitation.
-    await recordDemoRequest({name,phone,email});
+    // Independent abuse throttle; invalid codes never spend the email quota.
+    const attempts = await redis(['EVAL',"local n=redis.call('INCR',KEYS[1]); if n==1 then redis.call('EXPIRE',KEYS[1],3600) end; return n",'1',`trucky:demo:activation:attempts:${user.sub}`]);
+    if (attempts > 20) return reply('DEMO_ATTEMPT_LIMIT',429);
     if (process.env.DEMO_TRIAL_ACTIVATION_ENABLED !== 'true') return reply('TRIAL_ACTIVATION_NOT_READY',503);
     const identity = await googleIdentity(req);
-    const activation = await base44Call('activateDemoTrial', { google_id_token: identity.idToken });
-    if (activation.code !== 'DEMO_TRIAL_ACTIVATED') return reply('TRIAL_ACTIVATION_FAILED',503);
-    const trial = validateDemoDates(activation);
-    if (!trial.valid) return reply('TRIAL_DATES_INVALID',503);
-    if (trial.expired) return reply('DEMO_TRIAL_EXPIRED',409);
+    await activateDemoForInvitation({idToken:identity.idToken,dispatcherCode},base44Call);
+    const quota = await redis(['EVAL',"local n=redis.call('INCR',KEYS[1]); if n==1 then redis.call('EXPIRE',KEYS[1],86400) end; return n",'1',`trucky:demo:mail:quota:${user.sub}`]);
+    if (quota > 3) return reply('DAILY_LIMIT',429);
+    // Invalid code/expired grant cannot create CRM notes or send invitations.
+    await recordDemoRequest({name,phone,email});
     const encrypted = await redis(['GET',TOKEN_KEY]);
     if (!encrypted) return reply('SENDER_NOT_CONNECTED',503);
     const refreshed = await fetch('https://oauth2.googleapis.com/token', {
@@ -47,6 +47,9 @@ export async function POST(req: NextRequest) {
     if (!sent.ok) return reply('EMAIL_NOT_SENT',503);
     return reply('EMAIL_ACCEPTED',200);
   } catch (error) {
+    if (error instanceof Error && error.message === 'INVALID_DISPATCHER_CODE') return reply('INVALID_DISPATCHER_CODE',400);
+    if (error instanceof Error && error.message === 'DEMO_TRIAL_EXPIRED') return reply('DEMO_TRIAL_EXPIRED',409);
+    if (error instanceof Error && ['TRIAL_DATES_INVALID','TRIAL_ACTIVATION_FAILED'].includes(error.message)) return reply(error.message,503);
     if (error instanceof Error && ['CRM_NOT_CONFIGURED','CRM_NOT_SAVED','CRM_REQUIRES_REVIEW'].includes(error.message)) {
       console.error('demo_crm_failed',{code:error.message});
       return reply(error.message,503);
