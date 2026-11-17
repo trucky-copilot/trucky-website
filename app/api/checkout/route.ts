@@ -1,3 +1,4 @@
+import {parallelCheckoutChecks,CheckoutCheckFailure} from '@/lib/server/checkout-read-checks.mjs';
 import {checkLivePricePreflight} from '@/lib/server/live-price-preflight.mjs';
 import {firstPaymentOffer,assertSameCheckoutOffer,replaceUnconfirmedOffer} from '@/lib/server/first-payment-offer.mjs';
 import {testCheckoutEligible} from '@/lib/server/test-checkout-eligibility.mjs';
@@ -37,8 +38,6 @@ export async function POST(req: NextRequest) {
     if(live){
       // Base44's fresh eligibility call below owns company authorization.
       if(result.mode!=='live')throw Error('LIVE_BACKEND_NOT_READY');
-      stage='live_checkout_eligibility';
-      await verifyLiveCheckoutEligibility(identity.sub,org.id,{enrollmentValidated:org.billing_public_enrollment===true});
     }
     // Strictly permit first subscriptions only. Recovery/resubscription needs a separate flow.
     if (org.subscription_status !== "none" || org.can_checkout !== true) return NextResponse.json({ error: "ALREADY_SUBSCRIBED" }, { status: 409 });
@@ -48,19 +47,27 @@ export async function POST(req: NextRequest) {
     if (plan !== "owner_op" && plan !== "fleet") return NextResponse.json({ error: "PLAN_REQUIRED" }, { status: 400 });
     const priceId = live ? (plan === "owner_op" ? process.env.STRIPE_LIVE_PRICE_OWNER_OP : process.env.STRIPE_LIVE_PRICE_FLEET) : (plan === "owner_op" ? process.env.STRIPE_PRICE_OWNER_OP : process.env.STRIPE_PRICE_FLEET);
     if (!key || !priceId || !process.env.NEXTAUTH_URL) throw Error("CONFIGURATION_REQUIRED");
-    if (live) {
-      stage = "live_backend_preflight";
-      const serverSecret = process.env.TRUCKY_SERVER_SECRET;
-      if (!serverSecret) throw Error("CONFIGURATION_REQUIRED");
-      await checkLivePricePreflight({secret:serverSecret,prices:[process.env.STRIPE_LIVE_PRICE_OWNER_OP,process.env.STRIPE_LIVE_PRICE_FLEET]});
-    }
     const stripe = new Stripe(key);
-    stage = "stripe_price";
-    const price = await stripe.prices.retrieve(priceId);
-    if (!price.active || price.livemode !== live || price.type !== "recurring" || price.recurring?.interval !== "month" || price.recurring.interval_count !== 1 || price.unit_amount === null || price.billing_scheme !== "per_unit") throw Error("INVALID_PRICE");
-    if(live&&!expectedLivePrice(price,plan))throw Error('INVALID_PRICE');
-    stage = 'first_payment_offer';
-    const discounts = await firstPaymentOffer(stripe,price,plan,{live});
+    const checked = await parallelCheckoutChecks({
+      eligibility: {stage:'live_checkout_eligibility',run:async()=>{
+        if(live)await verifyLiveCheckoutEligibility(identity.sub,org.id,{enrollmentValidated:org.billing_public_enrollment===true});
+      }},
+      preflight: {stage:'live_backend_preflight',run:async()=>{
+        if(!live)return;
+        const serverSecret=process.env.TRUCKY_SERVER_SECRET;
+        if(!serverSecret)throw Error('CONFIGURATION_REQUIRED');
+        await checkLivePricePreflight({secret:serverSecret,prices:[process.env.STRIPE_LIVE_PRICE_OWNER_OP,process.env.STRIPE_LIVE_PRICE_FLEET]});
+      }},
+      pricing: {stage:'stripe_price',run:async()=>{
+        const price=await stripe.prices.retrieve(priceId);
+        if(!price.active||price.livemode!==live||price.type!=='recurring'||price.recurring?.interval!=='month'||price.recurring.interval_count!==1||price.unit_amount===null||price.billing_scheme!=='per_unit')throw Error('INVALID_PRICE');
+        if(live&&!expectedLivePrice(price,plan))throw Error('INVALID_PRICE');
+        // Coupon depends on this price, not on independent Base44 reads.
+        try{return await firstPaymentOffer(stripe,price,plan,{live});}
+        catch(error){throw new CheckoutCheckFailure('first_payment_offer',error);}
+      }},
+    });
+    const discounts = checked.pricing;
     stage = "redis_reserve";
     const command = redisCommandFromEnv();
     redis = command;
@@ -68,10 +75,11 @@ export async function POST(req: NextRequest) {
     if (await command(["SET", candidateMutationKey, owner, "NX"]) !== "OK") throw Error("CHECKOUT_LOCKED");
     mutationKey = candidateMutationKey;
     if(live){
-      stage='live_existing_subscription';
-      await assertNoExistingLiveSubscription(stripe,org.id);
-      // Recheck Base44's uncertainty locks after taking the checkout mutation lock.
-      await verifyLiveCheckoutEligibility(identity.sub,org.id,{enrollmentValidated:org.billing_public_enrollment===true});
+      await parallelCheckoutChecks({
+        subscription: {stage:'live_existing_subscription',run:()=>assertNoExistingLiveSubscription(stripe,org.id)},
+        // Fresh uncertainty/provenance checks are still repeated INSIDE mutation lock.
+        eligibility: {stage:'live_checkout_eligibility',run:()=>verifyLiveCheckoutEligibility(identity.sub,org.id,{enrollmentValidated:org.billing_public_enrollment===true})},
+      });
     }
     const coordinator = createCheckoutCoordinator(command, `trucky:checkout:${mode}:v1`, live);
     let attempt = await coordinator.reserve(org.id, identity.sub);
@@ -123,7 +131,11 @@ export async function POST(req: NextRequest) {
     if (session.status !== "open" || !session.url) throw Error("RECONCILIATION_REQUIRED");
     outcomeCertain = true;
     return NextResponse.json({ url: session.url }, { headers: { "Cache-Control": "no-store" } });
-  } catch (error) {
+  } catch (caught) {
+    let error: unknown = caught;
+    // Preserve original Stripe type/code/requestId and failing stage, even when
+    // checks ran in parallel. Never log the cause message or request payload.
+    while(error instanceof CheckoutCheckFailure){stage=error.stage;error=error.cause;}
     const code = error instanceof Error ? error.message : "CHECKOUT_UNAVAILABLE";
     // Whitelist diagnostics only: never log SDK messages, URLs, tokens or payloads.
     const sdk = error as { type?: string; code?: string; statusCode?: number; requestId?: string };
