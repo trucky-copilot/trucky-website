@@ -155,7 +155,7 @@ export function Academies({ lang, onOpenDemo }: { lang: Lang; onOpenDemo: () => 
           <div className="section-tag">{t.tag}</div>
           <h2 className="h2" style={{ marginTop: 20 }}>{t.title}</h2>
           <p className="section-sub">{t.text}</p>
-          <button className="btn btn-primary btn-lg" onClick={onOpenDemo}>
+          <button className="btn btn-primary btn-lg academy-cta" onClick={onOpenDemo}>
             {t.cta}
             <Icon name="arrowRight" width={18} height={18} />
           </button>

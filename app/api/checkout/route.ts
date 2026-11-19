@@ -53,9 +53,20 @@ export async function POST(req: NextRequest) {
     const priceId = live ? (plan === "owner_op" ? process.env.STRIPE_LIVE_PRICE_OWNER_OP : process.env.STRIPE_LIVE_PRICE_FLEET) : (plan === "owner_op" ? process.env.STRIPE_PRICE_OWNER_OP : process.env.STRIPE_PRICE_FLEET);
     if (!key || !priceId || !process.env.NEXTAUTH_URL) throw Error("CONFIGURATION_REQUIRED");
     const stripe = new Stripe(key);
+    stage = "redis_reserve";
+    const command = redisCommandFromEnv();
+    redis = command;
+    const candidateMutationKey = `trucky:checkout:${mode}:mutation:${org.id}`;
+    if (await command(["SET", candidateMutationKey, owner, "NX"]) !== "OK") throw Error("CHECKOUT_LOCKED");
+    mutationKey = candidateMutationKey;
+    // One fresh eligibility check INSIDE the mutation lock, concurrent with
+    // independent static/Stripe reads. Never cache tenant authorization.
     const checked = await parallelCheckoutChecks({
       eligibility: {stage:'live_checkout_eligibility',run:async()=>{
         if(live)await verifyLiveCheckoutEligibility(identity.sub,org.id,{enrollmentValidated:org.billing_public_enrollment===true});
+      }},
+      subscription: {stage:'live_existing_subscription',run:async()=>{
+        if(live)await assertNoExistingLiveSubscription(stripe,org.id);
       }},
       preflight: {stage:'live_backend_preflight',run:async()=>{
         if(!live)return;
@@ -73,19 +84,6 @@ export async function POST(req: NextRequest) {
       }},
     });
     const discounts = checked.pricing;
-    stage = "redis_reserve";
-    const command = redisCommandFromEnv();
-    redis = command;
-    const candidateMutationKey = `trucky:checkout:${mode}:mutation:${org.id}`;
-    if (await command(["SET", candidateMutationKey, owner, "NX"]) !== "OK") throw Error("CHECKOUT_LOCKED");
-    mutationKey = candidateMutationKey;
-    if(live){
-      await parallelCheckoutChecks({
-        subscription: {stage:'live_existing_subscription',run:()=>assertNoExistingLiveSubscription(stripe,org.id)},
-        // Fresh uncertainty/provenance checks are still repeated INSIDE mutation lock.
-        eligibility: {stage:'live_checkout_eligibility',run:()=>verifyLiveCheckoutEligibility(identity.sub,org.id,{enrollmentValidated:org.billing_public_enrollment===true})},
-      });
-    }
     const coordinator = createCheckoutCoordinator(command, `trucky:checkout:${mode}:v1`, live);
     let attempt = await coordinator.reserve(org.id, identity.sub);
     stage = "stripe_previous_session";

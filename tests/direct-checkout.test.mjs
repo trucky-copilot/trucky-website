@@ -16,7 +16,7 @@ test('one click sends one checkout request, resumes OAuth once, and retains its 
  assert.ok(source.includes("sessionStorage.removeItem('trucky.checkout.intent')"));
  assert.ok(source.includes("url.searchParams.delete('checkout_plan')"));
  assert.ok(source.includes('checkout_plan=${plan}#pricing'));
- assert.ok(source.includes('>{label}</button>'));
+ assert.ok(source.includes('>{label}{busy&&<span'));
  assert.ok(source.includes('disabled={busy} aria-busy={busy}'));
  assert.ok(!source.includes('Abriendo pago…'));
 });
