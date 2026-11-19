@@ -1468,3 +1468,17 @@ main form label input { display:block; width:100%; padding:12px; margin-top:6px;
   -webkit-box-shadow: 0 0 0 1000px #20162f inset;
   box-shadow: 0 0 0 1000px #20162f inset;
 }
+
+/* Separate academy copy from its CTA; show first-click acknowledgement without renaming Start. */
+#academias .academy-cta { margin-top: 28px; }
+.plan-checkout-button { position: relative; }
+.plan-checkout-button .plan-checkout-progress {
+  position: absolute; right: 20px; width: 16px; height: 16px;
+  border: 2px solid currentColor; border-right-color: transparent;
+  border-radius: 50%; animation: checkout-spin .8s linear infinite;
+  pointer-events: none;
+}
+@keyframes checkout-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+ .plan-checkout-button .plan-checkout-progress { animation: none; border-style: dotted; }
+}
