@@ -8,7 +8,7 @@ test('pricing opens Stripe without navigating to subscribe; cancel returns home'
  assert.ok(component.includes("url.hostname!=='checkout.stripe.com'"));
  assert.ok(readFileSync('app/api/checkout/route.ts','utf8').includes('cancel_url: `${origin}/#pricing`'));
 });
-test('one click sends one checkout request, resumes OAuth once, and retains the button label',()=>{
+test('one click sends one checkout request, resumes OAuth once, and displays opening status',()=>{
  const source=readFileSync('components/PlanCheckoutButton.tsx','utf8');
  assert.equal(source.split("fetch('/api/checkout'").length-1,1);
  assert.ok(!source.includes("fetch('/api/organizations'"));
@@ -16,5 +16,5 @@ test('one click sends one checkout request, resumes OAuth once, and retains the 
  assert.ok(source.includes("sessionStorage.removeItem('trucky.checkout.intent')"));
  assert.ok(source.includes("url.searchParams.delete('checkout_plan')"));
  assert.ok(source.includes('checkout_plan=${plan}#pricing'));
- assert.ok(source.includes('>{label}</button>'));
+ assert.ok(source.includes("Abriendo pago…"));
 });
