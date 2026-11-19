@@ -1,7 +1,7 @@
 import {resolveCheckoutTarget} from '@/lib/server/checkout-target.mjs';
 import { getToken } from 'next-auth/jwt';
 import {parallelCheckoutChecks,CheckoutCheckFailure} from '@/lib/server/checkout-read-checks.mjs';
-import {checkLivePricePreflight} from '@/lib/server/live-price-preflight.mjs';
+import {cachedLivePricePreflight} from '@/lib/server/live-price-preflight.mjs';
 import {firstPaymentOffer,assertSameCheckoutOffer,replaceUnconfirmedOffer} from '@/lib/server/first-payment-offer.mjs';
 import {testCheckoutEligible} from '@/lib/server/test-checkout-eligibility.mjs';
 import {verifyLiveCheckoutEligibility,expectedLivePrice,assertNoExistingLiveSubscription} from '@/lib/server/live-checkout-pilot.mjs';
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
         if(!live)return;
         const serverSecret=process.env.TRUCKY_SERVER_SECRET;
         if(!serverSecret)throw Error('CONFIGURATION_REQUIRED');
-        await checkLivePricePreflight({secret:serverSecret,prices:[process.env.STRIPE_LIVE_PRICE_OWNER_OP,process.env.STRIPE_LIVE_PRICE_FLEET]});
+        await cachedLivePricePreflight({secret:serverSecret,prices:[process.env.STRIPE_LIVE_PRICE_OWNER_OP,process.env.STRIPE_LIVE_PRICE_FLEET]});
       }},
       pricing: {stage:'stripe_price',run:async()=>{
         const price=await stripe.prices.retrieve(priceId);

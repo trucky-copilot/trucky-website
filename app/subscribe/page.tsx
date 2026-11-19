@@ -1,4 +1,5 @@
 "use client";
+import { CheckoutReturn } from "@/components/CheckoutReturn";
 import { useFlowLanguage } from "@/lib/useFlowLanguage";
 import { useEffect, useRef, useState } from "react";
 import { getSession, signIn } from "next-auth/react";
@@ -7,6 +8,7 @@ const APP_URL = "https://trucky-17a283d5.base44.app/";
 const hasAccess = (org: Org) => ["trialing", "active"].includes(org.subscription_status || "");
 export default function Subscribe() {
   const t=useFlowLanguage();
+  const [returned,setReturned]=useState(false);
   const [billingMode,setBillingMode]=useState('loading');
   useEffect(()=>{fetch('/api/billing-mode',{cache:'no-store'}).then(r=>r.json()).then(b=>setBillingMode(b.enabled?b.mode:'unavailable')).catch(()=>setBillingMode('unavailable'));},[]);
   const started = useRef(false);
@@ -84,6 +86,9 @@ export default function Subscribe() {
       window.location.replace("/#pricing");
       return;
     }
+    if(new URLSearchParams(window.location.search).get('checkout')==='returned'){
+      setReturned(true);return;
+    }
     const plan = new URLSearchParams(window.location.search).get("plan");
     if (plan !== "owner_op" && plan !== "fleet" && !new URLSearchParams(window.location.search).has("checkout")) {
       setError("Selecciona Owner-Op o Flota desde los planes."); setBusy(false); return;
@@ -101,6 +106,7 @@ export default function Subscribe() {
       await openCheckout(body.organization.id);
     } catch (e) { setError(e instanceof Error ? e.message : "BASE44_UNAVAILABLE"); setBusy(false); }
   }
+  if(returned)return <CheckoutReturn english={t('es','en')==='en'}/>;
   if (needsLogin) return <main className="demo-page"><section className="demo-card plan-login">
     <a href="/">← Trucky</a>
     <h1 style={{ textAlign: "center" }}>{t('Inicia sesión','Sign in')}</h1>
@@ -115,7 +121,7 @@ export default function Subscribe() {
   // Keep authorization, tenant resolution and redirects running; suppress only
   // the presentation while no user decision or error needs to be shown.
   if (busy && !error) return <main className="demo-page" aria-busy="true">
-    <span className="sr-only" role="status">{t("Abriendo pago seguro…", "Opening secure checkout…")}</span>
+    <section className="demo-card" role="status"><h1 className="h2">{t("Preparando el pago…", "Preparing checkout…")}</h1><div className="checkout-loading"><span className="checkout-spinner" aria-hidden="true"/><span>{t("Espera un momento. No repitas el pago.", "Please wait. Do not pay again.")}</span></div><a href={APP_URL} className="btn btn-primary">{t('Ir a la app','Go to the app')}</a></section>
   </main>;
   return <main className="demo-page"><section className="demo-card">
     <a href="/">← Trucky</a><h1 className="h2" style={{ textAlign: "center" }}>{planLabel === "Tu suscripción" ? t("Tu suscripción","Your subscription") : planLabel}</h1>

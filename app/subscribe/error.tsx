@@ -1,0 +1,2 @@
+"use client";
+export default function CheckoutError(){return <main className="demo-page"><section className="demo-card" role="alert"><h1>No pudimos mostrar la confirmación / Confirmation unavailable</h1><p>No vuelvas a pagar. Escríbenos con el correo del pago. / Do not pay again. Contact us with the email used for payment.</p><a href="mailto:trucky.road.copilot@gmail.com">trucky.road.copilot@gmail.com</a><p><a className="btn btn-primary" href="https://trucky-17a283d5.base44.app/">Ir a la app / Go to the app</a></p></section></main>;}
