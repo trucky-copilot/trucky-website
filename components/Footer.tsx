@@ -46,7 +46,7 @@ export function Footer({ lang }: { lang: Lang }) {
           <div className="footer-col">
             <h5>{t.legal}</h5>
             {t.legal_links.map((l, i) => (
-              <a key={i} href={l.href}>
+              <a key={i} href={`${l.href}?lang=${lang}`}>
                 {l.label}
               </a>
             ))}
