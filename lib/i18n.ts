@@ -219,8 +219,8 @@ export const I18N = {
       ],
       legal: "Legal",
       legal_links: [
-        { label: "Privacidad", href: "#" },
-        { label: "Términos", href: "#" },
+        { label: "Privacidad", href: "/privacy" },
+        { label: "Términos", href: "/terms" },
       ],
       copyright: "© 2026 Trucky. Todos los derechos reservados.",
     },
@@ -445,8 +445,8 @@ export const I18N = {
       ],
       legal: "Legal",
       legal_links: [
-        { label: "Privacy", href: "#" },
-        { label: "Terms", href: "#" },
+        { label: "Privacy", href: "/privacy" },
+        { label: "Terms", href: "/terms" },
       ],
       copyright: "© 2026 Trucky. All rights reserved.",
     },

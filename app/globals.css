@@ -1482,3 +1482,16 @@ main form label input { display:block; width:100%; padding:12px; margin-top:6px;
 @media (prefers-reduced-motion: reduce) {
  .plan-checkout-button .plan-checkout-progress { animation: none; border-style: dotted; }
 }
+
+.legal-page { min-height:100vh; padding:48px 20px; background:#0d071d; color:#f4f1ff; }
+.legal-card { max-width:880px; margin:auto; padding:36px; background:#140b28; border:1px solid #32234c; border-radius:24px; line-height:1.8; }
+.legal-card nav,.legal-card footer { display:flex; justify-content:space-between; flex-wrap:wrap; gap:20px; }
+.legal-card a { color:#c9b6ff; text-decoration:underline; text-underline-offset:4px; }
+.legal-card a:focus-visible { outline:2px solid #c9b6ff; outline-offset:4px; }
+.legal-card h1 { font-size:clamp(2rem,5vw,3rem); line-height:1.2; margin:32px 0 16px; }
+.legal-card section { padding:0; margin:32px 0; }
+.legal-card h2 { font-size:1.25rem; margin-bottom:10px; }
+.legal-card p { overflow-wrap:anywhere; }
+.legal-date { color:#bcb0d3; }
+.legal-card footer { border-top:1px solid #32234c; padding-top:24px; }
+@media(max-width:600px){.legal-page{padding:20px 12px}.legal-card{padding:24px 20px;border-radius:18px}}
