@@ -1,8 +1,9 @@
+import {academyRequested,academyDiscount,reserveAcademy} from '@/lib/server/academy-offer.mjs';
 import {resolveCheckoutTarget} from '@/lib/server/checkout-target.mjs';
 import { getToken } from 'next-auth/jwt';
 import {parallelCheckoutChecks,CheckoutCheckFailure} from '@/lib/server/checkout-read-checks.mjs';
 import {cachedLivePricePreflight} from '@/lib/server/live-price-preflight.mjs';
-import {firstPaymentOffer,assertSameCheckoutOffer,replaceUnconfirmedOffer} from '@/lib/server/first-payment-offer.mjs';
+import {assertSameCheckoutOffer,replaceUnconfirmedOffer} from '@/lib/server/first-payment-offer.mjs';
 import {testCheckoutEligible} from '@/lib/server/test-checkout-eligibility.mjs';
 import {verifyLiveCheckoutEligibility,expectedLivePrice,assertNoExistingLiveSubscription} from '@/lib/server/live-checkout-pilot.mjs';
 import { NextRequest, NextResponse } from "next/server";
@@ -26,6 +27,7 @@ export async function POST(req: NextRequest) {
     const identity = await googleIdentity(req);
     const body = await req.json();
     if (!body || !["owner_op","fleet"].includes(body.plan)) return NextResponse.json({error:"PLAN_REQUIRED"},{status:400});
+    const academy=academyRequested(body.academy_code,body.plan,{live:process.env.STRIPE_MODE==='live'});
     if (body.organization_id !== undefined && typeof body.organization_id !== "string") return NextResponse.json({ error: "INVALID_ORGANIZATION" }, { status: 400 });
     const allowedTestOrganizations = new Set((process.env.STRIPE_TEST_ORGANIZATION_IDS || "")
       .split(",").map(value => value.trim()).filter(Boolean));
@@ -79,7 +81,7 @@ export async function POST(req: NextRequest) {
         if(!price.active||price.livemode!==live||price.type!=='recurring'||price.recurring?.interval!=='month'||price.recurring.interval_count!==1||price.unit_amount===null||price.billing_scheme!=='per_unit')throw Error('INVALID_PRICE');
         if(live&&!expectedLivePrice(price,plan))throw Error('INVALID_PRICE');
         // Coupon depends on this price, not on independent Base44 reads.
-        try{return await firstPaymentOffer(stripe,price,plan,{live});}
+        try{return academy?await academyDiscount(stripe,price):[];}
         catch(error){throw new CheckoutCheckFailure('first_payment_offer',error);}
       }},
     });
@@ -93,6 +95,9 @@ export async function POST(req: NextRequest) {
     attempt = await replaceUnconfirmedPlan(stripe, coordinator, org.id, attempt, priceId, identity.sub, live);
     attempt = await replaceUnconfirmedOffer(stripe,coordinator,command,org.id,attempt,discounts,identity.sub,mode);
     if (Date.now() - attempt.createdAt > 20 * 60 * 60 * 1000) throw Error("RECONCILIATION_REQUIRED");
+    // Reserve once per verified Google identity, across companies and concurrent requests.
+    stage="academy_reservation";
+    const academyMetadata:Record<string,string>=academy?await reserveAcademy(command,identity.sub,org.id,attempt.id,discounts[0].coupon,priceId):{};
     const origin = new URL(process.env.NEXTAUTH_URL).origin;
     stage = "redis_payload";
     const payload = await canonicalCheckoutPayload(command, { ...attempt, mode }, {
@@ -104,13 +109,14 @@ export async function POST(req: NextRequest) {
       billing_address_collection: "required",
       tax_id_collection: { enabled: true },
       custom_fields: [{ key: "company_name", label: { type: "custom", custom: "Nombre de la empresa" }, type: "text", optional: false, text: { maximum_length: 120 } }],
-      metadata: { org_id: org.id, reservation_id: attempt.id },
-      subscription_data: { metadata: { org_id: org.id, reservation_id: attempt.id } },
+      metadata: { org_id: org.id, reservation_id: attempt.id, ...academyMetadata },
+      subscription_data: { metadata: { org_id: org.id, reservation_id: attempt.id, ...academyMetadata } },
       expires_at: Math.floor(attempt.createdAt / 1000) + 1800,
       success_url: `${origin}/subscribe?checkout=returned`,
       cancel_url: `${origin}/#pricing`,
     });
     assertSameCheckoutOffer(payload,discounts);
+    if(academy&&(payload.subscription_data?.metadata?.academy_account!==academyMetadata.academy_account||payload.subscription_data?.metadata?.academy_offer!=='ACADEMY'))throw Error('CHECKOUT_OFFER_CHANGED');
     // Cached attempts retain immutable Stripe parameters. Never silently reuse a
     // free-trial request after switching paid plans to immediate billing.
     if (payload.subscription_data?.trial_period_days || payload.subscription_data?.trial_end) throw Error("LEGACY_TRIAL_CHECKOUT_REQUIRES_REVIEW");
@@ -144,8 +150,8 @@ export async function POST(req: NextRequest) {
     const sdk = error as { type?: string; code?: string; statusCode?: number; requestId?: string };
     const safe = (value: unknown) => typeof value === "string" && /^[a-zA-Z0-9_-]{1,100}$/.test(value) ? value : undefined;
     console.error("checkout_failure", { stage, category: safe(code), type: safe(sdk.type), code: safe(sdk.code), status: typeof sdk.statusCode === "number" ? sdk.statusCode : undefined, stripeRequestId: safe(sdk.requestId) });
-    if (["ALREADY_SUBSCRIBED", "EXISTING_CHECKOUT_DIFFERENT_PLAN"].includes(code)) outcomeCertain = true;
-    const allowed = ["PUBLIC_SIGNUPS_CLOSED", "CHECKOUT_OFFER_CHANGED", "FIRST_PAYMENT_OFFER_INVALID", "BILLING_ACCOUNT_REVIEW_REQUIRED", "LIVE_IDENTITY_LINK_REQUIRED", "LIVE_PILOT_ONLY", "LIVE_BACKEND_NOT_READY", "LEGACY_TRIAL_CHECKOUT_REQUIRES_REVIEW", "ALREADY_SUBSCRIBED", "EXISTING_CHECKOUT_DIFFERENT_PLAN", "SIGN_IN_REQUIRED", "CHECKOUT_LOCKED", "RECONCILIATION_REQUIRED"];
+    if (["ALREADY_SUBSCRIBED", "EXISTING_CHECKOUT_DIFFERENT_PLAN", "ACADEMY_ALREADY_USED_OR_PENDING"].includes(code)) outcomeCertain = true;
+    const allowed = ["INVALID_ACADEMY_CODE", "ACADEMY_PLAN_REQUIRED", "ACADEMY_NOT_READY", "ACADEMY_COUPON_INVALID", "ACADEMY_ALREADY_USED_OR_PENDING", "PUBLIC_SIGNUPS_CLOSED", "CHECKOUT_OFFER_CHANGED", "FIRST_PAYMENT_OFFER_INVALID", "BILLING_ACCOUNT_REVIEW_REQUIRED", "LIVE_IDENTITY_LINK_REQUIRED", "LIVE_PILOT_ONLY", "LIVE_BACKEND_NOT_READY", "LEGACY_TRIAL_CHECKOUT_REQUIRES_REVIEW", "ALREADY_SUBSCRIBED", "EXISTING_CHECKOUT_DIFFERENT_PLAN", "SIGN_IN_REQUIRED", "CHECKOUT_LOCKED", "RECONCILIATION_REQUIRED"];
     return NextResponse.json({ error: allowed.includes(code) ? code : "CHECKOUT_UNAVAILABLE" }, { status: code === "SIGN_IN_REQUIRED" ? 401 : allowed.includes(code) ? 409 : 503 });
   } finally {
     if (mutationKey && redis && outcomeCertain) {

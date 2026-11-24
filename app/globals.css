@@ -1495,3 +1495,5 @@ main form label input { display:block; width:100%; padding:12px; margin-top:6px;
 .legal-date { color:#bcb0d3; }
 .legal-card footer { border-top:1px solid #32234c; padding-top:24px; }
 @media(max-width:600px){.legal-page{padding:20px 12px}.legal-card{padding:24px 20px;border-radius:18px}}
+
+.academy-code-field{display:flex;flex-direction:column;gap:8px;margin:20px 0;color:inherit;text-align:left;font-size:14px}.academy-code-field input{width:100%;border:1px solid #786597;border-radius:12px;background:#20162f;color:#fff;padding:12px 14px}.academy-code-field small{font-size:12px;line-height:1.5;opacity:.85}.academy-code-field input:focus-visible{outline:2px solid #b09fff;outline-offset:2px}
