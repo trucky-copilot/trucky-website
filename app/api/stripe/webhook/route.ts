@@ -1,3 +1,4 @@
+import {completeNativeAcademy} from '@/lib/server/academy-native.mjs';
 import {completeAcademy} from '@/lib/server/academy-offer.mjs';
 import Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
@@ -50,7 +51,10 @@ export async function POST(req: NextRequest) {
     sub = await stripe.subscriptions.retrieve(id);
     if (sub.livemode !== live || sub.metadata.org_id !== orgId) throw Error();
     // Durable one-use promotion receipt. Idempotent on retries; never reset on cancellation.
-    if(live)await completeAcademy(redis,sub);
+    if(live){
+      if(sub.metadata.academy_native==='v1'){if(await completeNativeAcademy(stripe,redis,sub))await completeAcademy(redis,sub);}
+      else await completeAcademy(redis,sub);
+    }
     const serverSecret = process.env.TRUCKY_SERVER_SECRET;
     if (!serverSecret) throw Error();
     writeStarted = true;
