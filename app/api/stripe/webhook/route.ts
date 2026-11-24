@@ -1,3 +1,4 @@
+import {completeAcademy} from '@/lib/server/academy-offer.mjs';
 import Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
 import { redisCommandFromEnv } from "@/lib/server/checkout-coordinator.mjs";
@@ -48,6 +49,8 @@ export async function POST(req: NextRequest) {
     if (await redis(["GET", processed])) { done = true; return reply("ALREADY_PROCESSED", 200); }
     sub = await stripe.subscriptions.retrieve(id);
     if (sub.livemode !== live || sub.metadata.org_id !== orgId) throw Error();
+    // Durable one-use promotion receipt. Idempotent on retries; never reset on cancellation.
+    if(live)await completeAcademy(redis,sub);
     const serverSecret = process.env.TRUCKY_SERVER_SECRET;
     if (!serverSecret) throw Error();
     writeStarted = true;

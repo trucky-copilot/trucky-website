@@ -160,7 +160,7 @@ export const I18N = {
           badge: "Más popular"
         }
       ],
-      free_trial: "Planes mensuales de US$29 y US$99, sin mes gratis. Los 15 días gratuitos corresponden solo a la demo."
+      free_trial: "Planes mensuales de US$29 y US$99. Solo ACADEMY en el plan US$29 incluye la primera mensualidad gratis. La demo de 15 días es independiente."
     },
     faq: {
       tag: "Preguntas frecuentes",
@@ -219,8 +219,8 @@ export const I18N = {
       ],
       legal: "Legal",
       legal_links: [
-        { label: "Privacidad", href: "#" },
-        { label: "Términos", href: "#" },
+        { label: "Privacidad", href: "/privacy" },
+        { label: "Términos", href: "/terms" },
       ],
       copyright: "© 2026 Trucky. Todos los derechos reservados.",
     },
@@ -386,7 +386,7 @@ export const I18N = {
           badge: "Most popular"
         }
       ],
-      free_trial: "US$29 and US$99 monthly plans, with no free month. The 15-day free period applies only to the demo."
+      free_trial: "US$29 and US$99 monthly plans. Only ACADEMY on the US$29 plan includes the first monthly payment free. The 15-day demo is separate."
     },
     faq: {
       tag: "FAQ",
@@ -445,8 +445,8 @@ export const I18N = {
       ],
       legal: "Legal",
       legal_links: [
-        { label: "Privacy", href: "#" },
-        { label: "Terms", href: "#" },
+        { label: "Privacy", href: "/privacy" },
+        { label: "Terms", href: "/terms" },
       ],
       copyright: "© 2026 Trucky. All rights reserved.",
     },
