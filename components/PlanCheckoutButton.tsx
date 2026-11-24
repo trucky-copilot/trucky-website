@@ -4,6 +4,7 @@ import { signIn } from 'next-auth/react';
 export function PlanCheckoutButton({plan,lang,label,className}:{plan:string;lang:string;label:string;className:string}) {
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[login,setLogin]=useState(false);
  const [choices,setChoices]=useState<Array<{id:string;name:string}>>([]);
+ const [academy,setAcademy]=useState('');
  const es=lang==='es';
  const inFlight=useRef(false), resumed=useRef(false);
  useEffect(()=>{const back=(event:PageTransitionEvent)=>{if(event.persisted){inFlight.current=false;setBusy(false);}};window.addEventListener('pageshow',back);return()=>window.removeEventListener('pageshow',back);},[]);
@@ -14,18 +15,20 @@ export function PlanCheckoutButton({plan,lang,label,className}:{plan:string;lang
   resumed.current=true;url.searchParams.delete('checkout_plan');
   window.history.replaceState(window.history.state,'',url.pathname+url.search+url.hash);
   try{if(sessionStorage.getItem('trucky.checkout.intent')!==plan)return;sessionStorage.removeItem('trucky.checkout.intent');}catch{return;}
-  void start();
+  let code='';try{code=sessionStorage.getItem('trucky.checkout.academy')||'';sessionStorage.removeItem('trucky.checkout.academy');}catch{}
+  if(plan==='owner_op')setAcademy(code);
+  void start(undefined,code);
  },[plan]);
  function loginAndContinue(){
-  try{sessionStorage.setItem('trucky.checkout.intent',plan);}catch{}
+  try{sessionStorage.setItem('trucky.checkout.intent',plan);sessionStorage.setItem('trucky.checkout.academy',plan==='owner_op'?academy:'');}catch{}
   void signIn('google',{callbackUrl:`/?lang=${lang}&checkout_plan=${plan}#pricing`});
  }
- async function start(id?:string){
+ async function start(id?:string,code=academy){
   // Synchronous guard covers two clicks before React has rendered disabled.
   if(inFlight.current)return;inFlight.current=true;setBusy(true);setError('');
   let navigating=false;
   try{
-   const r=await fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...(id?{organization_id:id}:{}),plan})});
+   const r=await fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...(id?{organization_id:id}:{}),plan,...(plan==='owner_op'?{academy_code:code}:{})})});
    const data=await r.json();
    if(r.status===401){setLogin(true);return;}
    if(data.error==='ORGANIZATION_SELECTION_REQUIRED'&&Array.isArray(data.organizations)){setChoices(data.organizations);return;}
@@ -36,8 +39,8 @@ export function PlanCheckoutButton({plan,lang,label,className}:{plan:string;lang
   }catch(e){setError(e instanceof Error?e.message:'CHECKOUT_UNAVAILABLE');}
   finally{if(!navigating){inFlight.current=false;setBusy(false);}}
  }
- return <><span className="sr-only" role="status">{busy?(es?'Abriendo el pago. No necesitas pulsar otra vez.':'Opening checkout. You do not need to click again.'):''}</span><button className={`${className} plan-checkout-button`} disabled={busy} aria-busy={busy} onClick={()=>void start()}>{label}{busy&&<span className="plan-checkout-progress" aria-hidden="true"/>}</button>
- {error&&<p role="alert">{error==='LIVE_IDENTITY_LINK_REQUIRED'?<>{es?'Antes de pagar, confirma tu cuenta en Trucky. Después regresa y selecciona el plan.':'Before paying, confirm your account in Trucky. Then return and select your plan.'} <a href="/billing-link">{es?'Vincular mi cuenta':'Link my account'}</a></>:<>{error==='BILLING_ACCOUNT_REVIEW_REQUIRED'?(es?'Tu empresa existente necesita confirmar la titularidad antes de pagar.':'Your existing company needs ownership verification before payment.'):<>{es?'No se pudo abrir Stripe: ':'Unable to open Stripe: '}{error}</>} <a href="/billing-link/existing">{es?'¿Ya tienes empresa en Trucky?':'Already have a Trucky company?'}</a></>}</p>}
+ return <>{plan==='owner_op'&&<label className="academy-code-field">{es?'Academia (opcional)':'Academy (optional)'}<input type="text" name="academy_code" maxLength={32} autoComplete="off" value={academy} disabled={busy} onChange={e=>{setAcademy(e.target.value);setError('');}}/><small>{es?'Con ACADEMY: primera mensualidad gratis y después US$29/mes. Una vez por cuenta.':'With ACADEMY: first monthly payment free, then US$29/month. Once per account.'}</small></label>}<span className="sr-only" role="status">{busy?(es?'Abriendo el pago. No necesitas pulsar otra vez.':'Opening checkout. You do not need to click again.'):''}</span><button className={`${className} plan-checkout-button`} disabled={busy} aria-busy={busy} onClick={()=>void start()}>{label}{busy&&<span className="plan-checkout-progress" aria-hidden="true"/>}</button>
+ {error&&<p role="alert">{error.startsWith('ACADEMY_')||error==='INVALID_ACADEMY_CODE'?<>{es?'No se pudo aplicar Academia. Verifica el código; si ya lo usaste o hay un intento pendiente, no repitas la compra.':'Unable to apply Academy. Check the code; if already used or pending, do not repeat the purchase.'} ({error})</>:error==='LIVE_IDENTITY_LINK_REQUIRED'?<>{es?'Antes de pagar, confirma tu cuenta en Trucky. Después regresa y selecciona el plan.':'Before paying, confirm your account in Trucky. Then return and select your plan.'} <a href="/billing-link">{es?'Vincular mi cuenta':'Link my account'}</a></>:<>{error==='BILLING_ACCOUNT_REVIEW_REQUIRED'?(es?'Tu empresa existente necesita confirmar la titularidad antes de pagar.':'Your existing company needs ownership verification before payment.'):<>{es?'No se pudo abrir Stripe: ':'Unable to open Stripe: '}{error}</>} <a href="/billing-link/existing">{es?'¿Ya tienes empresa en Trucky?':'Already have a Trucky company?'}</a></>}</p>}
  {(login||choices.length>0)&&<div className="modal-backdrop" onClick={e=>{if(e.target===e.currentTarget){setLogin(false);setChoices([]);}}}><section className="demo-card" role="dialog" aria-modal="true" aria-label={es?'Continuar al pago':'Continue to checkout'}>
  {login?<><h2>{es?'Inicia sesión':'Sign in'}</h2><button className="btn google-login-btn" onClick={loginAndContinue}>{es?'Continuar con Google':'Continue with Google'}</button><p>{es?'Continuaremos al pago después de iniciar sesión.':'We will continue to checkout after sign-in.'}</p></>:<><h2>{es?'Elige tu cuenta':'Choose your account'}</h2>{choices.map(org=><button key={org.id} className="btn btn-ghost" disabled={busy} onClick={()=>void start(org.id)}>{org.name}</button>)}</>}
  <button className="btn btn-ghost" onClick={()=>{setLogin(false);setChoices([]);}}>{es?'Cerrar':'Close'}</button>
