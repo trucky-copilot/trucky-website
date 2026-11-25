@@ -12,11 +12,11 @@ test('both plan prices selected on server and posted explicitly',()=>{
  assert.ok(checkout.includes('organization_id:id') && checkout.includes(',plan})'));
  assert.ok(checkout.includes("fetch('/api/checkout'"));
 });
-test('demo fields are empty initially and accepted send returns home',()=>{
+test('demo fields are empty initially and accepted send stays with confirmation',()=>{
  const ui=readFileSync('app/demo/page.tsx','utf8');
  assert.ok(!ui.includes('setName(session.user.name'));
  assert.ok(!ui.includes('setEmail(session.user.email'));
- assert.ok(ui.includes("window.location.assign('/?demo=sent&lang='"));
+ assert.ok(ui.includes('setSent(true)'));assert.ok(ui.includes('Tu información ya fue enviada'));assert.ok(!ui.includes("window.location.assign('/?demo=sent"));
  assert.ok(ui.includes("onChange={e=>{setEmail(e.target.value);clear('email');}}"));
 });
 

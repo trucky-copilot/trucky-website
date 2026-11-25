@@ -22,14 +22,14 @@ export const I18N = {
       academies: "Para academias",
       pricing: "Precios",
       faq: "Preguntas",
-      cta: "Agendar demo"
+      cta: "Solicitar Demo"
     },
     hero: {
       title_1: "Toma más camiones ",
       title_2: "sin trabajar más horas.",
       title_3: "",
       subtitle: "Trucky es la plataforma para dispatchers: revisa cada rate confirmation, te dice si una carga le paga a cada camión y lleva lo que genera cada empresa. En español y en inglés.",
-      cta_primary: "Agendar demo de 15 min",
+      cta_primary: "Solicitar Demo",
       cta_secondary: "Ver cómo funciona",
       microtrust: "Hecho para dispatchers que manejan de 1 a 10 camiones."
     },
@@ -193,7 +193,7 @@ export const I18N = {
         },
         {
           q: "¿Cómo agendo una demo?",
-          a: "Con el botón ‘Agendar demo’ o por WhatsApp. Son 15 minutos, con una carga tuya."
+          a: "Con el botón ‘Solicitar Demo’ o por WhatsApp. Completa el formulario y recibirás el enlace por correo."
         }
       ]
     },
@@ -201,8 +201,8 @@ export const I18N = {
       title_1: "Pruébalo con ",
       title_2: "una carga tuya.",
       title_3: "",
-      subtitle: "15 minutos. Tú pones la carga y nosotros te mostramos la respuesta.",
-      primary: "Agendar demo"
+      subtitle: "Recibe el enlace por correo y explora Trucky a tu ritmo.",
+      primary: "Solicitar Demo"
     },
     footer: {
       tagline: "Tu copiloto en la carretera. Menos papeleo, más millas rodando.",
@@ -248,14 +248,14 @@ export const I18N = {
       academies: "For academies",
       pricing: "Pricing",
       faq: "FAQ",
-      cta: "Book a demo"
+      cta: "Request Demo"
     },
     hero: {
       title_1: "Take on more trucks ",
       title_2: "without working more hours.",
       title_3: "",
       subtitle: "Trucky is the platform for truck dispatchers: it checks every rate confirmation, tells you if a load pays for each truck, and tracks what every company earns. In English and Spanish.",
-      cta_primary: "Book a 15-min demo",
+      cta_primary: "Request Demo",
       cta_secondary: "See how it works",
       microtrust: "Built for dispatchers who run 1 to 10 trucks."
     },
@@ -419,7 +419,7 @@ export const I18N = {
         },
         {
           q: "How do I book a demo?",
-          a: "Use the ‘Book a demo’ button or WhatsApp. It takes 15 minutes, with one of your own loads."
+          a: "Use the ‘Request Demo’ button or WhatsApp. Complete the form to receive the access link by email."
         }
       ]
     },
@@ -427,8 +427,8 @@ export const I18N = {
       title_1: "Try it with ",
       title_2: "one of your own loads.",
       title_3: "",
-      subtitle: "15 minutes. You bring the load, we show you the answer.",
-      primary: "Book a demo"
+      subtitle: "Receive the access link by email and explore Trucky at your own pace.",
+      primary: "Request Demo"
     },
     footer: {
       tagline: "Your road co-pilot. Less paperwork, more miles rolling.",
