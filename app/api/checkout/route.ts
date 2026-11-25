@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
       mode: "subscription",
       client_reference_id: org.id,
       line_items: [{ price: priceId, quantity: 1 }],
-      ...(nativeOffer.customer?{customer:nativeOffer.customer,customer_update:{name:'auto'}}:{}),
+      ...(nativeOffer.customer?{customer:nativeOffer.customer,customer_update:{name:'auto',address:'auto'}}:{}),
       ...(nativeOffer.allow_promotion_codes?{allow_promotion_codes:true}:{}),
       payment_method_collection: "always",
       billing_address_collection: "required",
@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
       if(recovered){supportedPayload=recovered.payload;idempotencyKey=recovered.idempotencyKey;}
     }
     stage = "stripe_session";
-    if(live)console.info('stripe_creation_shape',{existingSession:!!attempt.sessionId,hasCustomer:typeof supportedPayload.customer==='string',taxIdEnabled:supportedPayload.tax_id_collection?.enabled===true,nameAuto:supportedPayload.customer_update?.name==='auto',taxRecoveryKey:idempotencyKey.endsWith('_tax_name_v1')});
+    if(live)console.info('stripe_creation_shape',{existingSession:!!attempt.sessionId,hasCustomer:typeof supportedPayload.customer==='string',taxIdEnabled:supportedPayload.tax_id_collection?.enabled===true,nameAuto:supportedPayload.customer_update?.name==='auto',addressAuto:supportedPayload.customer_update?.address==='auto',taxRecoveryKey:idempotencyKey.endsWith('_tax_name_v1')});
     const session = attempt.sessionId
       ? await stripe.checkout.sessions.retrieve(attempt.sessionId)
       : await stripe.checkout.sessions.create(supportedPayload, { idempotencyKey });
