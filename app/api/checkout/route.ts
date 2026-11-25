@@ -1,4 +1,4 @@
-import {takeAuditedTaxLock,correctedTaxPayload} from '@/lib/server/customer-tax-recovery.mjs';
+import {takeAuditedTaxLock,correctedTaxPayload,safeTaxError} from '@/lib/server/customer-tax-recovery.mjs';
 import {academyProfile,prepareNativeAcademy,replaceLegacyAcademySession} from '@/lib/server/academy-native.mjs';
 import {resolveCheckoutTarget} from '@/lib/server/checkout-target.mjs';
 import { getToken } from 'next-auth/jwt';
@@ -142,6 +142,7 @@ export async function POST(req: NextRequest) {
       if(recovered){supportedPayload=recovered.payload;idempotencyKey=recovered.idempotencyKey;}
     }
     stage = "stripe_session";
+    if(live)console.info('stripe_creation_shape',{existingSession:!!attempt.sessionId,hasCustomer:typeof supportedPayload.customer==='string',taxIdEnabled:supportedPayload.tax_id_collection?.enabled===true,nameAuto:supportedPayload.customer_update?.name==='auto',taxRecoveryKey:idempotencyKey.endsWith('_tax_name_v1')});
     const session = attempt.sessionId
       ? await stripe.checkout.sessions.retrieve(attempt.sessionId)
       : await stripe.checkout.sessions.create(supportedPayload, { idempotencyKey });
@@ -160,7 +161,7 @@ export async function POST(req: NextRequest) {
     // Whitelist diagnostics only: never log SDK messages, URLs, tokens or payloads.
     const sdk = error as { type?: string; code?: string; statusCode?: number; requestId?: string };
     const safe = (value: unknown) => typeof value === "string" && /^[a-zA-Z0-9_-]{1,100}$/.test(value) ? value : undefined;
-    console.error("checkout_failure", { stage, category: safe(code), type: safe(sdk.type), code: safe(sdk.code), status: typeof sdk.statusCode === "number" ? sdk.statusCode : undefined, stripeRequestId: safe(sdk.requestId) });
+    console.error("checkout_failure", { stage, category: safe(code), type: safe(sdk.type), code: safe(sdk.code), status: typeof sdk.statusCode === "number" ? sdk.statusCode : undefined, stripeRequestId: safe(sdk.requestId), rejection:safeTaxError(error) });
     if (["ALREADY_SUBSCRIBED", "EXISTING_CHECKOUT_DIFFERENT_PLAN", "ACADEMY_ALREADY_USED_OR_PENDING"].includes(code)) outcomeCertain = true;
     const allowed = ["ACADEMY_GLOBAL_CODE_CONFLICT", "ACADEMY_CUSTOMER_REQUIRES_REVIEW", "ACADEMY_PROMOTION_REQUIRES_REVIEW", "INVALID_ACADEMY_CODE", "ACADEMY_PLAN_REQUIRED", "ACADEMY_NOT_READY", "ACADEMY_COUPON_INVALID", "ACADEMY_ALREADY_USED_OR_PENDING", "PUBLIC_SIGNUPS_CLOSED", "CHECKOUT_OFFER_CHANGED", "FIRST_PAYMENT_OFFER_INVALID", "BILLING_ACCOUNT_REVIEW_REQUIRED", "LIVE_IDENTITY_LINK_REQUIRED", "LIVE_PILOT_ONLY", "LIVE_BACKEND_NOT_READY", "LEGACY_TRIAL_CHECKOUT_REQUIRES_REVIEW", "ALREADY_SUBSCRIBED", "EXISTING_CHECKOUT_DIFFERENT_PLAN", "SIGN_IN_REQUIRED", "CHECKOUT_LOCKED", "RECONCILIATION_REQUIRED"];
     return NextResponse.json({ error: allowed.includes(code) ? code : "CHECKOUT_UNAVAILABLE" }, { status: code === "SIGN_IN_REQUIRED" ? 401 : allowed.includes(code) ? 409 : 503 });
