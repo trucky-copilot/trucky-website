@@ -1,3 +1,4 @@
+import {takeAuditedTaxLock,correctedTaxPayload} from '@/lib/server/customer-tax-recovery.mjs';
 import {academyProfile,prepareNativeAcademy,replaceLegacyAcademySession} from '@/lib/server/academy-native.mjs';
 import {resolveCheckoutTarget} from '@/lib/server/checkout-target.mjs';
 import { getToken } from 'next-auth/jwt';
@@ -57,7 +58,9 @@ export async function POST(req: NextRequest) {
     const command = redisCommandFromEnv();
     redis = command;
     const candidateMutationKey = `trucky:checkout:${mode}:mutation:${org.id}`;
-    if (await command(["SET", candidateMutationKey, owner, "NX"]) !== "OK") throw Error("CHECKOUT_LOCKED");
+    if (await command(["SET", candidateMutationKey, owner, "NX"]) !== "OK") {
+      if(!await takeAuditedTaxLock(command,stripe,{orgId:org.id,sub:identity.sub,owner,mode}))throw Error("CHECKOUT_LOCKED");
+    }
     mutationKey = candidateMutationKey;
     // One fresh eligibility check INSIDE the mutation lock, concurrent with
     // independent static/Stripe reads. Never cache tenant authorization.
@@ -105,7 +108,7 @@ export async function POST(req: NextRequest) {
       mode: "subscription",
       client_reference_id: org.id,
       line_items: [{ price: priceId, quantity: 1 }],
-      ...(nativeOffer.customer?{customer:nativeOffer.customer}:{}),
+      ...(nativeOffer.customer?{customer:nativeOffer.customer,customer_update:{name:'auto'}}:{}),
       ...(nativeOffer.allow_promotion_codes?{allow_promotion_codes:true}:{}),
       payment_method_collection: "always",
       billing_address_collection: "required",
@@ -132,6 +135,11 @@ export async function POST(req: NextRequest) {
         process.env.STRIPE_AUDITED_REJECTED_ATTEMPT_ID);
       supportedPayload = recovery.payload;
       idempotencyKey = recovery.idempotencyKey;
+    }
+    if(payload.customer&&payload.tax_id_collection?.enabled&&payload.customer_update?.name!=='auto'&&!attempt.sessionId){
+      stage='audited_tax_name_recovery';
+      const recovered=await correctedTaxPayload(command,stripe,attempt,payload,{mode});
+      if(recovered){supportedPayload=recovered.payload;idempotencyKey=recovered.idempotencyKey;}
     }
     stage = "stripe_session";
     const session = attempt.sessionId
