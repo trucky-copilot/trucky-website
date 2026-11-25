@@ -28,6 +28,7 @@ export default function DemoForm(){
    else if(b.code==='INVALID_DETAILS'){const errors=Array.isArray(b.fields)?b.fields.filter((value:unknown)=>['name','phone','email'].includes(String(value))):[];invalid(errors);}
    else if(b.code==='INVALID_PHONE'){invalid(['phone']);}
    else if(b.code==='INVALID_DISPATCHER_CODE'){setCodeError(true);setBusy(false);document.getElementById('demo-bonus-code')?.focus();}
+   else if(b.code==='DEMO_TRIAL_EXPIRED'){setResult(t('Tu demo ya finalizó. Elige un plan para continuar usando Trucky.','Your demo has ended. Choose a plan to continue using Trucky.'));setBusy(false);}
    else if(b.code==='DEMO_ATTEMPT_LIMIT'){setResult(t('Demasiados intentos. Espera una hora antes de volver a probar.','Too many attempts. Wait an hour before trying again.'));setBusy(false);}
    else{setResult(t(`No pudimos confirmar el envío (${b.code}). No repitas de inmediato si el estado es desconocido.`,`Unable to confirm delivery (${b.code}). Do not retry immediately if the outcome is unknown.`));setBusy(false);}
   }catch{setResult(t('No se pudo confirmar el envío. No repitas de inmediato.','Unable to confirm delivery. Do not retry immediately.'));setBusy(false);}

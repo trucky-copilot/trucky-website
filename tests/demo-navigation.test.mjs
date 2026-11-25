@@ -11,10 +11,10 @@ test('homepage demo buttons preserve language and avoid booking modal', () => {
  assert.ok(!header.includes('{signedIn &&'));
  assert.ok(header.includes('{t.nav.cta}'));
 });
-test('checkout return waits for server subscription confirmation', () => {
+test('checkout return delegates activation to app and never polls or opens another checkout',()=>{
  const source=readFileSync('app/subscribe/page.tsx','utf8');
- assert.ok(source.includes('status.organizations.some(hasAccess)'));
- assert.ok(source.includes('SUBSCRIPTION_CONFIRMATION_PENDING'));
- const api=readFileSync('app/api/checkout/route.ts','utf8');
- assert.ok(api.includes('/subscribe?checkout=returned'));
+ assert.ok(source.includes('window.location.replace(APP_URL);return;'));
+ assert.ok(source.includes('https://trucky-ai.app/'));
+ assert.ok(!source.includes('status.organizations.some(hasAccess)'));
+ assert.ok(source.indexOf('window.location.replace(APP_URL);return;')<source.indexOf('void initialize();'));
 });
