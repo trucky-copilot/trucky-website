@@ -1,3 +1,4 @@
+import {demoEmailRaw} from '@/lib/server/demo-email.mjs';
 import {activateDemoForInvitation,dispatcherCodeInput} from '@/lib/server/demo-activation.mjs';
 import { recordDemoRequest } from '@/lib/server/hubspot.mjs';
 import {invalidDemoFields} from '@/lib/demo-details.mjs';
@@ -40,8 +41,7 @@ export async function POST(req: NextRequest) {
     if (!refreshed.ok) return reply('SENDER_REAUTH_REQUIRED',503);
     const token = await refreshed.json();
     if (!token.access_token) return reply('SENDER_REAUTH_REQUIRED',503);
-    const text = `Gracias por probar nuestra app puedes darle clic al siguiente link:\nhttps://trucky-17a283d5.base44.app/\n`;
-    const raw = Buffer.from(`From: Trucky <${SENDER}>\r\nTo: ${email}\r\nSubject: Tu demo de Trucky\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n${Buffer.from(text).toString('base64')}`).toString('base64url');
+    const raw=demoEmailRaw({name,email,sender:SENDER,lang:body.lang==='en'?'en':'es'});
     // Do not retry automatically: send outcome can be unknown after a timeout.
     const sent = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {method:'POST',headers:{Authorization:`Bearer ${token.access_token}`,'Content-Type':'application/json'},body:JSON.stringify({raw}),signal:AbortSignal.timeout(15000)});
     if (!sent.ok) return reply('EMAIL_NOT_SENT',503);
