@@ -13,6 +13,6 @@ export async function POST(req:NextRequest){
   const r=await fetch('https://trucky-17a283d5.base44.app/api/functions/enrollExistingBillingOrganization',{method:'POST',redirect:'error',cache:'no-store',signal:AbortSignal.timeout(15000),headers:{Authorization:`Bearer ${secret}`,'Content-Type':'application/json'},body:JSON.stringify({mode:'owner_approval',organization_id:body.organization_id,member_id:body.member_id,google_id_token:token!.googleIdToken,owner_consent:true})});
   const data=await r.json();if(!r.ok||data.code!=='EXISTING_GOOGLE_APPROVAL_RECORDED'||!valid(data.request_id))return reply('EXISTING_ENROLLMENT_REQUIRES_REVIEW',503);
   const hash=new URLSearchParams({billing_existing:data.request_id,billing_org:body.organization_id,billing_member:body.member_id});
-  return NextResponse.json({url:`https://trucky-17a283d5.base44.app/#${hash}`},{headers});
+  return NextResponse.json({url:`https://trucky-ai.app/#${hash}`},{headers});
  }catch{return reply('EXISTING_ENROLLMENT_REQUIRES_REVIEW',503);}
 }

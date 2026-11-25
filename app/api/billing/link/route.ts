@@ -19,6 +19,6 @@ export async function POST(req:NextRequest){
   const result=await redisCommandFromEnv()(['SET',`trucky:billing:handoff:v1:${digest}`,JSON.stringify({sub:identity.sub,email:session.email.toLowerCase(),orgId:org.id}),'EX','300','NX']);
   if(result!=='OK')throw Error();
   // Fixed destination; code is not a Google token. Fragment is never sent to HTTP logs.
-  return NextResponse.json({url:`https://trucky-17a283d5.base44.app/#billing_link=${code}`},{headers:{'Cache-Control':'no-store','Referrer-Policy':'no-referrer'}});
+  return NextResponse.json({url:`https://trucky-ai.app/#billing_link=${code}`},{headers:{'Cache-Control':'no-store','Referrer-Policy':'no-referrer'}});
  }catch{return NextResponse.json({code:'LINK_AUTHORIZATION_REQUIRED'},{status:503});}
 }

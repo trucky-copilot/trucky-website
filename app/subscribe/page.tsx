@@ -1,16 +1,14 @@
 "use client";
-import { CheckoutReturn } from "@/components/CheckoutReturn";
 import { useFlowLanguage } from "@/lib/useFlowLanguage";
 import { useEffect, useRef, useState } from "react";
 import { getSession, signIn } from "next-auth/react";
 type Org = { id: string; name: string; subscription_status?: string; billing_demo_enabled?: boolean };
-const APP_URL = "https://trucky-17a283d5.base44.app/";
+const APP_URL = "https://trucky-ai.app/";
 const hasAccess = (org: Org) => ["trialing", "active"].includes(org.subscription_status || "");
 export default function Subscribe() {
   const t=useFlowLanguage();
-  const [returned,setReturned]=useState(false);
   const [billingMode,setBillingMode]=useState('loading');
-  useEffect(()=>{fetch('/api/billing-mode',{cache:'no-store'}).then(r=>r.json()).then(b=>setBillingMode(b.enabled?b.mode:'unavailable')).catch(()=>setBillingMode('unavailable'));},[]);
+  useEffect(()=>{if(new URLSearchParams(window.location.search).get('checkout')==='returned')return;fetch('/api/billing-mode',{cache:'no-store'}).then(r=>r.json()).then(b=>setBillingMode(b.enabled?b.mode:'unavailable')).catch(()=>setBillingMode('unavailable'));},[]);
   const started = useRef(false);
   const [organizations, setOrganizations] = useState<Org[]>([]);
   const [selected, setSelected] = useState("");
@@ -49,18 +47,6 @@ export default function Subscribe() {
       const orgs: Org[] = body.organizations;
       setOrganizations(orgs);
       const returned = new URLSearchParams(window.location.search).get("checkout");
-      if (returned === "returned") {
-        // Never grant access based on a browser return. Wait for webhook state.
-        setMessage("Confirmando la suscripción con el servidor…");
-        for (let attempt = 0; attempt < 15; attempt++) {
-          const statusResponse = await fetch("/api/organizations", { cache: "no-store" });
-          if (!statusResponse.ok) throw Error("SUBSCRIPTION_CONFIRMATION_PENDING");
-          const status = await statusResponse.json();
-          if (status.organizations.some(hasAccess)) { window.location.assign(APP_URL); return; }
-          await new Promise(resolve => setTimeout(resolve, 2000));
-        }
-        throw Error("SUBSCRIPTION_CONFIRMATION_PENDING");
-      }
       if (orgs.length === 0 && returned !== "canceled") {
         setMessage("Preparando tu cuenta para continuar a Stripe…");
         const created = await fetch("/api/organizations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prepare_checkout: true }) });
@@ -87,7 +73,7 @@ export default function Subscribe() {
       return;
     }
     if(new URLSearchParams(window.location.search).get('checkout')==='returned'){
-      setReturned(true);return;
+      window.location.replace(APP_URL);return;
     }
     const plan = new URLSearchParams(window.location.search).get("plan");
     if (plan !== "owner_op" && plan !== "fleet" && !new URLSearchParams(window.location.search).has("checkout")) {
@@ -106,7 +92,6 @@ export default function Subscribe() {
       await openCheckout(body.organization.id);
     } catch (e) { setError(e instanceof Error ? e.message : "BASE44_UNAVAILABLE"); setBusy(false); }
   }
-  if(returned)return <CheckoutReturn english={t('es','en')==='en'}/>;
   if (needsLogin) return <main className="demo-page"><section className="demo-card plan-login">
     <a href="/">← Trucky</a>
     <h1 style={{ textAlign: "center" }}>{t('Inicia sesión','Sign in')}</h1>
