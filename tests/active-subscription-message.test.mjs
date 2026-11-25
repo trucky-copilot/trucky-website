@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import{readFileSync}from'node:fs';
+test('existing subscription has dedicated bilingual message rather than raw Stripe error',()=>{const s=readFileSync('components/PlanCheckoutButton.tsx','utf8');assert.ok(s.includes("error==='ALREADY_SUBSCRIBED'?(es?'Ya tienes una suscripción activa':'You already have an active subscription')"));});
