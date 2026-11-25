@@ -1,4 +1,5 @@
-import {takeAuditedTaxLock,correctedTaxPayload,safeTaxError} from '@/lib/server/customer-tax-recovery.mjs';
+import {resumeAuditedTaxCheckout} from '@/lib/server/resume-tax-checkout.mjs';
+import {correctedTaxPayload,safeTaxError} from '@/lib/server/customer-tax-recovery.mjs';
 import {academyProfile,prepareNativeAcademy,replaceLegacyAcademySession} from '@/lib/server/academy-native.mjs';
 import {resolveCheckoutTarget} from '@/lib/server/checkout-target.mjs';
 import { getToken } from 'next-auth/jwt';
@@ -59,7 +60,15 @@ export async function POST(req: NextRequest) {
     redis = command;
     const candidateMutationKey = `trucky:checkout:${mode}:mutation:${org.id}`;
     if (await command(["SET", candidateMutationKey, owner, "NX"]) !== "OK") {
-      if(!await takeAuditedTaxLock(command,stripe,{orgId:org.id,sub:identity.sub,owner,mode}))throw Error("CHECKOUT_LOCKED");
+      stage='audited_checkout_resume';
+      const resumed=await resumeAuditedTaxCheckout(command,stripe,{orgId:org.id,sub:identity.sub,owner,mode,priceId,
+        authorize:()=>parallelCheckoutChecks({
+          eligibility:{stage:'live_checkout_eligibility',run:()=>verifyLiveCheckoutEligibility(identity.sub,org.id,{enrollmentValidated:org.billing_public_enrollment===true})},
+          subscriptions:{stage:'live_existing_subscription',run:()=>assertNoExistingLiveSubscription(stripe,org.id)},
+          price:{stage:'live_backend_preflight',run:()=>cachedLivePricePreflight({secret:process.env.TRUCKY_SERVER_SECRET,prices:[process.env.STRIPE_LIVE_PRICE_OWNER_OP,process.env.STRIPE_LIVE_PRICE_FLEET]})},
+        })});
+      if(resumed)return NextResponse.json({url:resumed.url},{headers:{'Cache-Control':'no-store'}});
+      throw Error('CHECKOUT_LOCKED');
     }
     mutationKey = candidateMutationKey;
     // One fresh eligibility check INSIDE the mutation lock, concurrent with
