@@ -81,6 +81,10 @@ export function Header({ lang, setLang, theme, setTheme, onOpenDemo }: Props) {
           >
             <Icon name={isDark ? "sun" : "moon"} width={20} height={20} />
           </button>
+          {/* Acceso directo a la aplicación: siempre visible. */}
+          <a className="btn nav-app-btn" href="https://trucky-ai.app/" target="_blank" rel="noopener noreferrer">
+            <span className="nav-app-brand">Trucky </span>App
+          </a>
           <button className="btn btn-primary" onClick={onOpenDemo}>
             {t.nav.cta}
           </button>
