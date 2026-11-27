@@ -1498,13 +1498,16 @@ main form label input { display:block; width:100%; padding:12px; margin-top:6px;
 
 .demo-sent-notice{margin:24px 0;padding:26px;border:1px solid #9f87db;border-radius:18px;background:#25163a;line-height:1.7}.demo-sent-notice h2{font-size:24px;margin:12px 0}.demo-sent-icon{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:#6130be;color:#fff;font-size:26px}.demo-sent-notice:focus{outline:2px solid #b9a2f0;outline-offset:3px}
 
-/* Botón "Trucky App" del menú: contorno claro sobre el menú oscuro. */
-.nav-app-btn { background: rgba(255,255,255,0.06); color: #fff; border: 1.5px solid rgba(255,255,255,0.35); }
-.nav-app-btn:hover { border-color: #fff; background: rgba(255,255,255,0.12); }
-@media (max-width: 480px) {
-  /* En celular el botón dice "App" para que quepa junto a "Solicitar Demo". */
-  .nav-app-brand { display: none; }
-  .nav-tools > .btn.nav-app-btn { padding: 12px 9px; }
+/* Menú: "Trucky App" morado (btn-primary) y "Solicitar Demo" con contorno claro. */
+.nav-demo-btn { background: rgba(255,255,255,0.06); color: #fff; border: 1.5px solid rgba(255,255,255,0.35); }
+.nav-demo-btn:hover { border-color: #fff; background: rgba(255,255,255,0.12); }
+.nav-inner { max-width: 1320px; }
+.nav-links a.link { white-space: nowrap; }
+.nav-app-short { display: none; }
+@media (max-width: 1200px) {
+  .nav-links a.link { padding: 8px 10px; }
+  .nav-app-full { display: none; }
+  .nav-app-short { display: inline; }
 }
 @media (max-width: 380px) {
   /* Teléfonos angostos: un poco menos de espacio para que todo quepa. */
@@ -1517,4 +1520,12 @@ main form label input { display:block; width:100%; padding:12px; margin-top:6px;
   .nav-logo img { max-width: 60px; }
   .nav-tools .icon-btn { width: 26px; }
   .nav-tools > .btn { font-size: 11px; padding: 11px 7px; }
+}
+@media (max-width: 1000px) {
+  /* Con el botón nuevo, los enlaces del menú se ocultan antes (igual que en celular). */
+  .nav-links, .nav .desktop-only { display: none; }
+}
+@media (min-width: 1001px) and (max-width: 1100px) {
+  .nav-inner { gap: 12px; }
+  .nav-links a.link { padding: 8px 7px; font-size: 13px; }
 }
