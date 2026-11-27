@@ -2,6 +2,7 @@ import {resumeAuditedTaxCheckout} from '@/lib/server/resume-tax-checkout.mjs';
 import {correctedTaxPayload,safeTaxError} from '@/lib/server/customer-tax-recovery.mjs';
 import {academyProfile,prepareNativeAcademy,replaceLegacyAcademySession} from '@/lib/server/academy-native.mjs';
 import {resolveCheckoutTarget} from '@/lib/server/checkout-target.mjs';
+import {referralMetadata} from '@/lib/referral.mjs';
 import { getToken } from 'next-auth/jwt';
 import {parallelCheckoutChecks,CheckoutCheckFailure} from '@/lib/server/checkout-read-checks.mjs';
 import {cachedLivePricePreflight} from '@/lib/server/live-price-preflight.mjs';
@@ -111,6 +112,8 @@ export async function POST(req: NextRequest) {
     stage="academy_reservation";
     const nativeOffer=await prepareNativeAcademy(stripe,command,price,identity.sub,org.id,attempt,{profile});
     const academyMetadata:Record<string,string>=nativeOffer.metadata||{};
+    // PM-03: código de quien invitó (solo registro; no cambia precio ni descuento).
+    const referral:Record<string,string>=referralMetadata(body.invita);
     const origin = new URL(process.env.NEXTAUTH_URL).origin;
     stage = "redis_payload";
     const payload = await canonicalCheckoutPayload(command, { ...attempt, mode }, {
@@ -122,8 +125,8 @@ export async function POST(req: NextRequest) {
       payment_method_collection: "always",
       billing_address_collection: "required",
       tax_id_collection: { enabled: true },
-      metadata: { org_id: org.id, reservation_id: attempt.id, ...academyMetadata },
-      subscription_data: { metadata: { org_id: org.id, reservation_id: attempt.id, ...academyMetadata } },
+      metadata: { org_id: org.id, reservation_id: attempt.id, ...academyMetadata, ...referral },
+      subscription_data: { metadata: { org_id: org.id, reservation_id: attempt.id, ...academyMetadata, ...referral } },
       expires_at: Math.floor(attempt.createdAt / 1000) + 1800,
       success_url: "https://trucky-ai.app/",
       cancel_url: `${origin}/#pricing`,
