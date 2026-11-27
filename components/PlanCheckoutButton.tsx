@@ -1,12 +1,16 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
 import { signIn } from 'next-auth/react';
+import { normalizeReferral, REFERRAL_STORAGE_KEY } from '@/lib/referral.mjs';
 export function PlanCheckoutButton({plan,lang,label,className}:{plan:string;lang:string;label:string;className:string}) {
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[login,setLogin]=useState(false);
  const [choices,setChoices]=useState<Array<{id:string;name:string}>>([]);
  const es=lang==='es';
  const inFlight=useRef(false), resumed=useRef(false);
  useEffect(()=>{const back=(event:PageTransitionEvent)=>{if(event.persisted){inFlight.current=false;setBusy(false);}};window.addEventListener('pageshow',back);return()=>window.removeEventListener('pageshow',back);},[]);
+ // PM-03: guarda el código del enlace de invitación (?invita=) para enviarlo al pagar,
+ // también después de iniciar sesión con Google.
+ useEffect(()=>{try{const code=normalizeReferral(new URL(window.location.href).searchParams.get('invita'));if(code)localStorage.setItem(REFERRAL_STORAGE_KEY,code);}catch{}},[]);
  useEffect(()=>{
   if(resumed.current)return;
   const url=new URL(window.location.href);
@@ -25,7 +29,8 @@ export function PlanCheckoutButton({plan,lang,label,className}:{plan:string;lang
   if(inFlight.current)return;inFlight.current=true;setBusy(true);setError('');
   let navigating=false;
   try{
-   const r=await fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...(id?{organization_id:id}:{}),plan})});
+   let invita:string|null=null;try{invita=normalizeReferral(localStorage.getItem(REFERRAL_STORAGE_KEY));}catch{}
+   const r=await fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...(invita?{invita}:{}),...(id?{organization_id:id}:{}),plan})});
    const data=await r.json();
    if(r.status===401){setLogin(true);return;}
    if(data.error==='ORGANIZATION_SELECTION_REQUIRED'&&Array.isArray(data.organizations)){setChoices(data.organizations);return;}
